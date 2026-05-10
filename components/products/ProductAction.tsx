@@ -1,26 +1,39 @@
 "use client";
 
-import { useCartStore } from "@/shore/cartStore";
 import { useState } from "react";
+import { useCartStore, type Product } from "@/shore/cartStore";
+import { useFeedbackStore } from "@/shore/feedbackStore";
 
+
+type ProductActionsProps = {
+  product: Product;
+};
 
 export default function ProductActions({
   product,
-}) {
+}: ProductActionsProps) {
   const [selectedSize, setSelectedSize] =
     useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
-  const addToCart = useCartStore(
-    (state) => state.addToCart
-  );
+  const addToCart = useCartStore.getState().addToCart;
+  const pushToast = useFeedbackStore((state) => state.pushToast);
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
-      alert("Please select a size");
+    if (product.stock === 0) {
+      pushToast("This product is out of stock.");
       return;
     }
 
+    if (!selectedSize) {
+      pushToast("Please select a size first.");
+      return;
+    }
+
+    setIsAdding(true);
     addToCart(product, selectedSize);
+    pushToast(`${product.name} added to cart.`);
+    setIsAdding(false);
   };
 
   return (
@@ -33,7 +46,7 @@ export default function ProductActions({
         </p>
 
         <div className="flex gap-3 flex-wrap">
-          {product.sizes.map((size) => (
+          {product.sizes.map((size: string) => (
             <button
               key={size}
               onClick={() =>
@@ -54,10 +67,14 @@ export default function ProductActions({
       {/* Add Button */}
       <button
         onClick={handleAddToCart}
-        disabled={product.stock === 0}
+        disabled={product.stock === 0 || !selectedSize || isAdding}
         className="w-full bg-gray-800 rounded text-white py-4 hover:bg-gray-600 transition disabled:bg-gray-400"
       >
-        Add to Cart
+        {product.stock === 0
+          ? "Out of Stock"
+          : isAdding
+            ? "Adding..."
+            : "Add to Cart"}
       </button>
     </div>
   );

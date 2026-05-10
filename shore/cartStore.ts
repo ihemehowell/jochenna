@@ -12,6 +12,8 @@ interface Product {
   sizes: string[];
 }
 
+export type { Product };
+
 interface CartItem extends Product {
   quantity: number;
   selectedSize: string;
@@ -29,6 +31,11 @@ interface CartState {
   decreaseQuantity: (id: number, selectedSize: string) => void;
   clearCart: () => void;
 }
+
+const isValidProductSelection = (
+  product: Product | undefined,
+  selectedSize: string
+) => Boolean(product && selectedSize);
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -49,6 +56,10 @@ export const useCartStore = create<CartState>()(
         })),
 
       addToCart: (product: Product, selectedSize: string) => {
+        if (!isValidProductSelection(product, selectedSize)) {
+          return;
+        }
+
         const existing = get().cart.find(
           (item: CartItem) =>
             item.id === product.id &&

@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import { products } from "@/data/products";
 
 import ProductCard from "@/components/products/ProductCard";
-import AddToCartButton from "@/components/products/AddToCartButton";
+// import AddToCartButton from "@/components/products/AddToCartButton";
 import ProductActions from "@/components/products/ProductAction";
+
+const FALLBACK_IMAGE =
+  'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960"%3E%3Crect width="800" height="960" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="Arial, sans-serif" font-size="28"%3EImage unavailable%3C/text%3E%3C/svg%3E';
 
 
 
@@ -30,7 +33,7 @@ export default async function ProductDetailsPage({
   );
 
   return (
-    <main className="px-4 md:px-8 py-10">
+    <main className="px-4 md:px-8 py-10 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         
         {/* Product Section */}
@@ -39,9 +42,9 @@ export default async function ProductDetailsPage({
           {/* Image */}
           <div className="bg-gray-100">
             <Image
-              src={product.images[0]}
+              src={product.images?.[0] || FALLBACK_IMAGE}
               alt={product.name}
-              width={1000}
+              width={1000} 
               height={1000}
               className="w-full h-175 object-cover"
             />

@@ -1,13 +1,36 @@
 "use client";
 
-import { useCartStore } from "@/shore/cartStore";
-import Image from "next/image";
 import Link from "next/link";
+import { useCartStore, type Product } from "@/shore/cartStore";
 import ProductGallery from "./ProductGallery";
+import { useFeedbackStore } from "@/shore/feedbackStore";
 
 
-export default function ProductCard({ product }) {
-  const addToCart = useCartStore((state) => state.addToCart);
+type ProductCardProps = {
+  product: Product;
+};
+
+export default function ProductCard({
+  product,
+}: ProductCardProps) {
+  const addToCart = useCartStore.getState().addToCart;
+  const pushToast = useFeedbackStore((state) => state.pushToast);
+
+  const handleQuickAdd = () => {
+    if (product.stock === 0) {
+      pushToast("This product is out of stock.");
+      return;
+    }
+
+    const defaultSize = product.sizes[0];
+    if (!defaultSize) {
+      pushToast("Please choose a product with a size option.");
+      return;
+    }
+
+    addToCart(product, defaultSize);
+    pushToast(`${product.name} added to cart.`);
+  };
 
   return (
     <div className="group">
@@ -19,14 +42,17 @@ export default function ProductCard({ product }) {
             images={product.images}
             productName={product.name}
           />
+        </Link>
+
         {/* Hover Button */}
         <button
-          onClick={() => addToCart(product)}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 rounded text-white px-6 py-3 text-sm opacity-0 group-hover:opacity-100 transition"
+          type="button"
+          onClick={handleQuickAdd}
+          disabled={product.stock === 0}
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900 rounded text-white px-6 py-3 text-sm opacity-0 group-hover:opacity-100 transition disabled:bg-gray-500"
         >
           Add to Cart
-        </button> 
-        </Link>
+        </button>
       </div>
 
       {/* Product Info */}

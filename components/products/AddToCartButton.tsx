@@ -1,21 +1,31 @@
 "use client";
 
+import type { Product } from "@/shore/cartStore";
 import { useCartStore } from "@/shore/cartStore";
 
 
+type AddToCartButtonProps = {
+  product: Product;
+  disabled?: boolean;
+};
 
 export default function AddToCartButton({
   product,
   disabled,
-}) {
-  const addToCart = useCartStore(
-    (state) => state.addToCart
-  );
+}: AddToCartButtonProps) {
+  const addToCart = useCartStore.getState().addToCart;
+  const defaultSize = product.sizes[0];
 
   return (
     <button
-      onClick={() => addToCart(product)}
-      disabled={disabled}
+      onClick={() => {
+        if (!defaultSize) {
+          return;
+        }
+
+        addToCart(product, defaultSize);
+      }}
+      disabled={disabled || !defaultSize}
       className="bg-gray-900 rounded text-white py-4 hover:bg-gray-800 transition disabled:bg-gray-400 w-full"
     >
       Add to Cart

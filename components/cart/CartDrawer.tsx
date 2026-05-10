@@ -8,7 +8,11 @@ import {
   Trash2,
 } from "lucide-react";
 import { useCartStore } from "@/shore/cartStore";
+import { useFeedbackStore } from "@/shore/feedbackStore";
 
+
+const IMAGE_PLACEHOLDER =
+  'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960"%3E%3Crect width="800" height="960" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="Arial, sans-serif" font-size="28"%3EImage unavailable%3C/text%3E%3C/svg%3E';
 
 
 export default function CartDrawer() {
@@ -20,12 +24,28 @@ export default function CartDrawer() {
     increaseQuantity,
     decreaseQuantity,
   } = useCartStore();
+  const pushToast = useFeedbackStore((state) => state.pushToast);
 
   const totalPrice = cart.reduce(
     (total: number, item) =>
       total + item.price * item.quantity,
     0
   );
+
+  const handleDecrease = (id: number, selectedSize: string) => {
+    decreaseQuantity(id, selectedSize);
+    pushToast("Cart quantity updated.");
+  };
+
+  const handleIncrease = (id: number, selectedSize: string) => {
+    increaseQuantity(id, selectedSize);
+    pushToast("Cart quantity updated.");
+  };
+
+  const handleRemove = (id: number, selectedSize: string) => {
+    removeFromCart(id, selectedSize);
+    pushToast("Item removed from cart.");
+  };
 
   return (
     <>
@@ -76,7 +96,7 @@ export default function CartDrawer() {
                 
                 <div className="relative w-24 h-28 bg-gray-100">
                   <Image
-                    src={item.images?.[0] || ""}
+                    src={item.images?.[0] || IMAGE_PLACEHOLDER}
                     alt={item.name}
                     fill
                     className="object-cover"
@@ -101,10 +121,7 @@ export default function CartDrawer() {
                   <div className="flex items-center gap-3 mt-4">
                     <button
                       onClick={() =>
-                        decreaseQuantity(
-                        item.id,
-                        item.selectedSize
-                      )
+                        handleDecrease(item.id, item.selectedSize)
                       }
                       className="border p-1 border-gray-800 text-gray-800"
                     >
@@ -115,10 +132,7 @@ export default function CartDrawer() {
 
                     <button
                       onClick={() =>
-                       increaseQuantity(
-                        item.id,
-                        item.selectedSize
-                      )
+                        handleIncrease(item.id, item.selectedSize)
                       }
                       className="border p-1 border-gray-800 text-gray-800"
                     >
@@ -130,10 +144,7 @@ export default function CartDrawer() {
                 {/* Remove */}
                 <button
                   onClick={() =>
-                    removeFromCart(
-                    item.id,
-                    item.selectedSize
-                  )
+                    handleRemove(item.id, item.selectedSize)
                   }
                 >
                   <Trash2
