@@ -2,7 +2,35 @@ import { create } from "zustand";
 
 import { persist } from "zustand/middleware";
 
-export const useCartStore = create(
+interface Product {
+  id: number;
+  name: string;
+  price: number;
+  images: string[];
+  category: string;
+  stock: number;
+  sizes: string[];
+}
+
+interface CartItem extends Product {
+  quantity: number;
+  selectedSize: string;
+}
+
+interface CartState {
+  cart: CartItem[];
+  isCartOpen: boolean;
+  openCart: () => void;
+  closeCart: () => void;
+  toggleCart: () => void;
+  addToCart: (product: Product, selectedSize: string) => void;
+  removeFromCart: (id: number, selectedSize: string) => void;
+  increaseQuantity: (id: number, selectedSize: string) => void;
+  decreaseQuantity: (id: number, selectedSize: string) => void;
+  clearCart: () => void;
+}
+
+export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       cart: [],
@@ -16,20 +44,20 @@ export const useCartStore = create(
         set({ isCartOpen: false }),
 
       toggleCart: () =>
-        set((state) => ({
+        set((state: CartState) => ({
           isCartOpen: !state.isCartOpen,
         })),
 
-      addToCart: (product, selectedSize) => {
+      addToCart: (product: Product, selectedSize: string) => {
         const existing = get().cart.find(
-          (item) =>
+          (item: CartItem) =>
             item.id === product.id &&
             item.selectedSize === selectedSize
         );
 
         if (existing) {
           set({
-            cart: get().cart.map((item) =>
+            cart: get().cart.map((item: CartItem) =>
               item.id === product.id &&
               item.selectedSize === selectedSize
                 ? {
@@ -55,10 +83,10 @@ export const useCartStore = create(
         set({ isCartOpen: true });
       },
 
-      removeFromCart: (id, selectedSize) => {
+      removeFromCart: (id: number, selectedSize: string) => {
         set({
           cart: get().cart.filter(
-            (item) =>
+            (item: CartItem) =>
               !(
                 item.id === id &&
                 item.selectedSize === selectedSize
@@ -68,11 +96,11 @@ export const useCartStore = create(
       },
 
       increaseQuantity: (
-        id,
-        selectedSize
+        id: number,
+        selectedSize: string
       ) => {
         set({
-          cart: get().cart.map((item) =>
+          cart: get().cart.map((item: CartItem) =>
             item.id === id &&
             item.selectedSize === selectedSize
               ? {
@@ -85,12 +113,12 @@ export const useCartStore = create(
       },
 
       decreaseQuantity: (
-        id,
-        selectedSize
+        id: number,
+        selectedSize: string
       ) => {
         set({
           cart: get()
-            .cart.map((item) =>
+            .cart.map((item: CartItem) =>
               item.id === id &&
               item.selectedSize === selectedSize
                 ? {
@@ -99,7 +127,7 @@ export const useCartStore = create(
                   }
                 : item
             )
-            .filter((item) => item.quantity > 0),
+            .filter((item: CartItem) => item.quantity > 0),
         });
       },
 

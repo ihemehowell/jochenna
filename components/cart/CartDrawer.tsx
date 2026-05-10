@@ -22,7 +22,7 @@ export default function CartDrawer() {
   } = useCartStore();
 
   const totalPrice = cart.reduce(
-    (total, item) =>
+    (total: number, item) =>
       total + item.price * item.quantity,
     0
   );
@@ -41,7 +41,7 @@ export default function CartDrawer() {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-full sm:w-[450px] bg-white z-50 transition-transform duration-300 flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-full sm:w-112.5 bg-white z-50 transition-transform duration-300 flex flex-col ${
           isCartOpen
             ? "translate-x-0"
             : "translate-x-full"
@@ -76,7 +76,7 @@ export default function CartDrawer() {
                 
                 <div className="relative w-24 h-28 bg-gray-100">
                   <Image
-                    src={item.images[0]}
+                    src={item.images?.[0] || ""}
                     alt={item.name}
                     fill
                     className="object-cover"

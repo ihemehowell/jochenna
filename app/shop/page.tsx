@@ -101,7 +101,7 @@ export default function ShopPage() {
             </div>
 
             {filteredProducts.length === 0 ? (
-              <div className="h-[300px] flex items-center justify-center border border-dashed border-gray-300">
+              <div className="h-75 flex items-center justify-center border border-dashed border-gray-300">
                 <p className="text-gray-500">
                   No products found.
                 </p>

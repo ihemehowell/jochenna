@@ -11,6 +11,8 @@ import ProductActions from "@/components/products/ProductAction";
 
 export default async function ProductDetailsPage({
   params,
+}: {
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
 
@@ -41,7 +43,7 @@ export default async function ProductDetailsPage({
               alt={product.name}
               width={1000}
               height={1000}
-              className="w-full h-[700px] object-cover"
+              className="w-full h-175 object-cover"
             />
           </div>
 

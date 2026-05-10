@@ -7,6 +7,9 @@ import Image from "next/image";
 export default function ProductGallery({
   images,
   productName,
+}: {
+  images: string[];
+  productName: string;
 }) {
   const [activeImage, setActiveImage] =
     useState(images[0]);
@@ -16,7 +19,7 @@ export default function ProductGallery({
       
       {/* Thumbnails */}
       <div className="flex lg:flex-col gap-4">
-        {images.map((image, index) => (
+        {images.map((image: string, index: number) => (
           <button
             key={index}
             onClick={() =>
@@ -45,7 +48,7 @@ export default function ProductGallery({
           alt={productName}
           width={1000}
           height={1200}
-          className="w-full h-[400px] object-cover hover:scale-105 transition duration-500"
+          className="w-full h-100 object-cover hover:scale-105 transition duration-500"
         />
       </div>
     </div>
