@@ -1,14 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { products } from "@/data/products";
+import { useState, useEffect } from "react";
+import { getProducts } from "@/lib/api";
+import type { Product } from "@/lib/api";
 import ProductCard from "@/components/products/ProductCard";
 
 export default function ShopPage() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] =
     useState("All");
   const [sortBy, setSortBy] = useState("featured");
+
+  // Fetch products from backend
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      const data = await getProducts();
+      setProducts(data);
+      setLoading(false);
+    };
+
+    fetchProducts();
+  }, []);
 
   const categories = [
     "All",
@@ -47,7 +62,8 @@ export default function ShopPage() {
       return b.name.localeCompare(a.name);
     }
 
-    return a.id - b.id;
+    // Featured sort - maintain original order
+    return 0;
   });
 
   return (
@@ -65,7 +81,7 @@ export default function ShopPage() {
           </h1>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8 lg:gap-12">
           
           {/* Sidebar */}
           <aside className="space-y-8">
@@ -136,7 +152,11 @@ export default function ShopPage() {
               </label>
             </div>
 
-            {sortedProducts.length === 0 ? (
+            {loading ? (
+              <div className="h-75 flex items-center justify-center border border-dashed border-gray-300">
+                <p className="text-gray-500">Loading products...</p>
+              </div>
+            ) : sortedProducts.length === 0 ? (
               <div className="h-75 flex items-center justify-center border border-dashed border-gray-300">
                 <p className="text-gray-500">
                   No products found.
@@ -146,7 +166,7 @@ export default function ShopPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
                 {sortedProducts.map((product) => (
                   <ProductCard
-                    key={product.id}
+                    key={product.id || product._id}
                     product={product}
                   />
                 ))}

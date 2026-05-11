@@ -3,7 +3,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface Product {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   images: string[];
@@ -26,9 +26,9 @@ interface CartState {
   closeCart: () => void;
   toggleCart: () => void;
   addToCart: (product: Product, selectedSize: string) => void;
-  removeFromCart: (id: number, selectedSize: string) => void;
-  increaseQuantity: (id: number, selectedSize: string) => void;
-  decreaseQuantity: (id: number, selectedSize: string) => void;
+  removeFromCart: (id: string | number, selectedSize: string) => void;
+  increaseQuantity: (id: string | number, selectedSize: string) => void;
+  decreaseQuantity: (id: string | number, selectedSize: string) => void;
   clearCart: () => void;
 }
 
@@ -90,11 +90,9 @@ export const useCartStore = create<CartState>()(
             ],
           });
         }
-
-        set({ isCartOpen: true });
       },
 
-      removeFromCart: (id: number, selectedSize: string) => {
+      removeFromCart: (id: string | number, selectedSize: string) => {
         set({
           cart: get().cart.filter(
             (item: CartItem) =>
@@ -107,7 +105,7 @@ export const useCartStore = create<CartState>()(
       },
 
       increaseQuantity: (
-        id: number,
+        id: string | number,
         selectedSize: string
       ) => {
         set({
@@ -124,7 +122,7 @@ export const useCartStore = create<CartState>()(
       },
 
       decreaseQuantity: (
-        id: number,
+        id: string | number,
         selectedSize: string
       ) => {
         set({

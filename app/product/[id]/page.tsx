@@ -1,7 +1,12 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { motion } from "framer-motion";
 
-import { products } from "@/data/products";
+import { getProductById, getProducts } from "@/lib/api";
+import type { Product } from "@/lib/api";
 
 import ProductCard from "@/components/products/ProductCard";
 // import AddToCartButton from "@/components/products/AddToCartButton";
@@ -12,35 +17,105 @@ const FALLBACK_IMAGE =
 
 
 
-export default async function ProductDetailsPage({
+export default function ProductDetailsPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const { id } = React.use(params);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+  // Fetch product and related products from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      
+      // Fetch the product
+      const productData = await getProductById(id);
+      
+      if (!productData) {
+        notFound();
+      }
+      
+      setProduct(productData);
+      
+      // Fetch all products to find related ones
+      const allProducts = await getProducts();
+      const related = allProducts.filter(
+        (item) =>
+          item.category === productData.category &&
+          item._id !== productData._id &&
+          item.id !== productData.id
+      );
+      
+      setRelatedProducts(related);
+      setLoading(false);
+    };
 
-  if (!product) {
-    notFound();
-  }
-  const relatedProducts = products.filter(
-    (item) =>
-      item.category === product.category &&
-      item.id !== product.id
-  );
+    fetchData();
+  }, [id]);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+      },
+    },
+  };
+
+  const imageVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.6,
+      },
+    },
+  };
 
   return (
     <main className="px-4 md:px-8 py-10 bg-gray-50">
-      <div className="max-w-7xl mx-auto">
+      {loading ? (
+        <div className="flex items-center justify-center h-96">
+          <p className="text-gray-500">Loading product...</p>
+        </div>
+      ) : !product ? (
+        <div className="flex items-center justify-center h-96">
+          <p className="text-gray-500">Product not found</p>
+        </div>
+      ) : (
+      <motion.div
+        className="max-w-7xl mx-auto"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
         
         {/* Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           
           {/* Image */}
-          <div className="bg-gray-100">
+          <motion.div
+            className="bg-gray-100"
+            variants={imageVariants}
+          >
             <Image
               src={product.images?.[0] || FALLBACK_IMAGE}
               alt={product.name}
@@ -48,10 +123,13 @@ export default async function ProductDetailsPage({
               height={1000}
               className="w-full h-175 object-cover"
             />
-          </div>
+          </motion.div>
 
           {/* Info */}
-          <div className="flex flex-col justify-center">
+          <motion.div
+            className="flex flex-col justify-center"
+            variants={itemVariants}
+          >
             
             <p className="uppercase tracking-[0.2em] text-sm text-gray-500 mb-4">
               {product.category}
@@ -72,7 +150,12 @@ export default async function ProductDetailsPage({
             </p>
 
             {/* Stock */}
-            <div className="mb-8">
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
               {product.stock > 0 ? (
                 <p className="text-green-600">
                   In Stock ({product.stock} left)
@@ -82,18 +165,36 @@ export default async function ProductDetailsPage({
                   Out of Stock
                 </p>
               )}
-            </div>
+            </motion.div>
 
             {/* Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            >
               <ProductActions product={product} />
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
-          <section className="mt-28">
+          <motion.section
+            className="mt-28"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6 }}
+          >
             
-            <div className="mb-12">
+            <motion.div
+              className="mb-12"
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.5 }}
+              transition={{ duration: 0.6 }}
+            >
               <p className="uppercase tracking-[0.3em] text-sm text-gray-500 mb-3">
                 You May Also Like
               </p>
@@ -101,19 +202,27 @@ export default async function ProductDetailsPage({
               <h2 className="text-4xl font-semibold">
                 Related Pieces
               </h2>
-            </div>
+            </motion.div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {relatedProducts.map((item) => (
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+            >
+              {relatedProducts.map((item, index) => (
                 <ProductCard
-                  key={item.id}
+                  key={item.id || item._id}
                   product={item}
+                  index={index}
                 />
               ))}
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
         )}
-      </div>
+      </motion.div>
+      )}
     </main>
   );
 }
