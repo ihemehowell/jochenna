@@ -1,6 +1,6 @@
 "use client";
 
-import type { Product } from "@/shore/cartStore";
+import type { Product } from "@/lib/types";
 import { useCartStore } from "@/shore/cartStore";
 
 
@@ -13,8 +13,8 @@ export default function AddToCartButton({
   product,
   disabled,
 }: AddToCartButtonProps) {
-  const addToCart = useCartStore.getState().addToCart;
-  const defaultSize = product.sizes[0];
+  const addToCart = useCartStore((state) => state.addToCart);
+  const defaultSize = product.sizes?.[0];
 
   return (
     <button

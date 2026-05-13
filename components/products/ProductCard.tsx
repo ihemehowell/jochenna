@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart } from "lucide-react";
-import { useCartStore, type Product } from "@/shore/cartStore";
+import { useCartStore } from "@/shore/cartStore";
 import { useWishlistStore } from "@/shore/wishlistStore";
+import type { Product } from "@/lib/types";
 import ProductGallery from "./ProductGallery";
 import { useFeedbackStore } from "@/shore/feedbackStore";
 
@@ -12,13 +13,15 @@ import { useFeedbackStore } from "@/shore/feedbackStore";
 type ProductCardProps = {
   product: Product;
   index?: number;
+  rankingBadge?: string;
 };
 
 export default function ProductCard({
   product,
   index = 0,
+  rankingBadge,
 }: ProductCardProps) {
-  const addToCart = useCartStore.getState().addToCart;
+  const addToCart = useCartStore((state) => state.addToCart);
   const pushToast = useFeedbackStore((state) => state.pushToast);
   const isInWishlist = useWishlistStore((state) => state.isInWishlist(product.id));
   const addToWishlist = useWishlistStore((state) => state.addToWishlist);
@@ -30,7 +33,7 @@ export default function ProductCard({
       return;
     }
 
-    const defaultSize = product.sizes[0];
+    const defaultSize = product.sizes?.[0];
     if (!defaultSize) {
       pushToast("Please choose a product with a size option.");
       return;
@@ -72,6 +75,36 @@ export default function ProductCard({
     hover: { opacity: 1, y: 0 },
   };
 
+  const ageLabelMap = {
+    "0-6m": "0–6 months",
+    "6-12m": "6–12 months",
+    "1-2y": "1–2 years",
+    "3-5y": "3–5 years",
+    "6-10y": "6–10 years",
+  } as const;
+
+  const conditionLabelMap = {
+    "like-new": "Like New",
+    "gently-used": "Gently Used",
+    used: "Used",
+  } as const;
+
+  const categoryLabelMap = {
+    clothes: "Clothes",
+    toys: "Toys",
+    baby: "Baby Essentials",
+    shoes: "Shoes",
+    accessories: "Accessories",
+  };
+
+  const categoryLabel =
+    categoryLabelMap[product.category as keyof typeof categoryLabelMap] ??
+    product.category;
+
+  const primaryAgeLabel = product.ageGroup[0]
+    ? ageLabelMap[product.ageGroup[0]]
+    : null;
+
   return (
     <motion.div
       className="group"
@@ -94,6 +127,36 @@ export default function ProductCard({
             productName={product.name}
           />
         </Link>
+
+        {/* Badges (age group, condition) */}
+        <div className="absolute left-4 top-4 flex flex-col gap-2 z-10">
+          {rankingBadge && (
+            <span className="rounded-full bg-amber-200 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-amber-900 shadow-sm backdrop-blur">
+              {rankingBadge}
+            </span>
+          )}
+
+          {primaryAgeLabel && (
+            <span className="rounded-full bg-sky-100 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-sky-700 shadow-sm backdrop-blur">
+              {primaryAgeLabel}
+            </span>
+          )}
+
+          {product.condition && (
+            <span
+              className={
+                "rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-wide shadow-sm backdrop-blur " +
+                (product.condition === "like-new"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : product.condition === "gently-used"
+                  ? "bg-amber-100 text-amber-800"
+                  : "bg-gray-100 text-gray-700")
+              }
+            >
+              {conditionLabelMap[product.condition]}
+            </span>
+          )}
+        </div>
 
         {/* Wishlist Heart */}
         <motion.button
@@ -130,7 +193,7 @@ export default function ProductCard({
         viewport={{ once: true, amount: 0.3 }}
       >
         <p className="text-sm text-gray-500">
-          {product.category}
+          {categoryLabel}
         </p>
 
         <h3 className="font-medium text-base md:text-lg text-gray-900">

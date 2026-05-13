@@ -2,17 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ShoppingBag, Menu, X } from "lucide-react";
+import { ShoppingBag, Menu, X, LogOut } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore } from "@/shore/cartStore";
+import { useAuthStore } from "@/shore/authStore";
+import { useFeedbackStore } from "@/shore/feedbackStore";
 
 export default function Navbar() {
   const cart = useCartStore((state) => state.cart);
   const toggleCart = useCartStore((state) => state.toggleCart);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
+  const pushToast = useFeedbackStore((state) => state.pushToast);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+  const handleLogout = () => {
+    logout();
+    pushToast("You have been logged out.");
+    setMobileMenuOpen(false);
+  };
 
   const overlayVariants = {
     hidden: { opacity: 0 },
@@ -91,7 +102,7 @@ export default function Navbar() {
 
             {/* Drawer */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-[85%] max-w-[350px] bg-white z-50 md:hidden"
+              className="fixed top-0 right-0 h-full w-[85%] max-w-87.5 bg-white z-50 md:hidden"
               variants={drawerVariants}
               initial="hidden"
               animate="visible"
@@ -118,6 +129,9 @@ export default function Navbar() {
                   { href: "/shop", label: "Shop" },
                   { href: "/wishlist", label: "Wishlist" },
                   { href: "/new-arrivals", label: "New Arrivals" },
+                  ...(user ? [{ href: "/orders", label: "Orders" }] : []),
+                  ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
+                  { href: "/auth", label: user ? "Account" : "Login / Register" },
                 ].map(({ href, label }, i) => (
                   <motion.div
                     key={href}
@@ -133,6 +147,19 @@ export default function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
+
+                {user && (
+                  <motion.button
+                    type="button"
+                    onClick={handleLogout}
+                    className="mt-4 flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700"
+                    variants={linkVariants}
+                    custom={5}
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </motion.button>
+                )}
               </motion.nav>
             </motion.div>
           </>
@@ -170,6 +197,8 @@ export default function Navbar() {
             {[
               { href: "/", label: "Home" },
               { href: "/shop", label: "Shop" },
+              ...(user ? [{ href: "/orders", label: "Orders" }] : []),
+              ...(user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []),
             ].map(({ href, label }) => (
               <motion.div
                 key={href}
@@ -188,6 +217,25 @@ export default function Navbar() {
 
           {/* Right Actions */}
           <div className="flex items-center gap-4">
+            <Link
+              href="/auth"
+              className="hidden rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300 md:inline-flex"
+            >
+              {user ? user.name.split(" ")[0] || "Account" : "Login"}
+            </Link>
+
+            {user && (
+              <motion.button
+                onClick={handleLogout}
+                className="hidden text-gray-600 transition hover:text-gray-900 md:inline-flex"
+                aria-label="Logout"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogOut size={18} />
+              </motion.button>
+            )}
+
             {/* Cart */}
             <motion.button
               onClick={toggleCart}

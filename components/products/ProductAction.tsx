@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useCartStore, type Product } from "@/shore/cartStore";
+import { useCartStore } from "@/shore/cartStore";
+import type { Product } from "@/lib/types";
 import { useFeedbackStore } from "@/shore/feedbackStore";
 
 
@@ -16,7 +17,7 @@ export default function ProductActions({
     useState("");
   const [isAdding, setIsAdding] = useState(false);
 
-  const addToCart = useCartStore.getState().addToCart;
+  const addToCart = useCartStore((state) => state.addToCart);
   const pushToast = useFeedbackStore((state) => state.pushToast);
 
   const handleAddToCart = () => {
@@ -46,7 +47,7 @@ export default function ProductActions({
         </p>
 
         <div className="flex gap-3 flex-wrap">
-          {product.sizes.map((size: string) => (
+          {product.sizes?.map((size: string) => (
             <button
               key={size}
               onClick={() =>

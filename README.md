@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jochenna Storefront
 
-## Getting Started
+Modern thrift storefront for kidswear and essentials, built with Next.js App Router, TypeScript, Tailwind CSS, Framer Motion, and Zustand.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Zustand (cart/wishlist/feedback stores)
+- Framer Motion
+
+## Quick Start
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Create env file:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Set backend URL in `.env.local`:
+
+```bash
+NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+```
+
+4. Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If port 3000 is busy, use:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev -- -p 3002
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+- `npm run dev`: Start development server.
+- `npm run build`: Create production build.
+- `npm run start`: Start production server.
+- `npm run lint`: Run ESLint checks.
+- `npm run test`: Run Vitest in watch mode.
+- `npm run test:run`: Run Vitest once.
+- `npm run typecheck`: Run TypeScript checks.
+- `npm run check`: Run lint + typecheck + unit tests + build.
 
-To learn more about Next.js, take a look at the following resources:
+## Routes
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/`: Home page with hero and featured products.
+- `/shop`: Product catalog with filters and sorting.
+- `/product/[id]`: Product detail page and related products.
+- `/wishlist`: Saved wishlist items.
+- `/checkout`: Two-step checkout flow.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Data and API Contract
 
-## Deploy on Vercel
+Frontend expects a backend at `NEXT_PUBLIC_BACKEND_URL` with these endpoints:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `GET /api/products`
+- `GET /api/products/:id`
+- `POST /api/products` (admin use)
+- `POST /api/products/seed`
+- `POST /api/orders` (optional; checkout falls back to demo mode when missing)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Notes:
+
+- Product IDs are normalized to strings in the frontend.
+- If `NEXT_PUBLIC_BACKEND_URL` is missing or invalid, app falls back to `http://localhost:5000` and logs a warning.
+
+## Project Structure
+
+- `app/`: Routes, route-level loading states, and error boundaries.
+- `components/`: UI building blocks and product/cart components.
+- `lib/`: API client and shared types.
+- `shore/`: Zustand stores (cart, wishlist, feedback).
+- `data/`: Local seed/example product data.
+
+## Current Checkout Behavior
+
+- Validates required fields, email, and postal code format.
+- Submits order payload to `POST /api/orders` when available.
+- Uses demo-mode success fallback when order endpoint is not implemented.
+
+## Quality Checklist
+
+Run this before shipping:
+
+```bash
+npm run check
+```
+
+## Deployment
+
+For production deployment, ensure:
+
+- `NEXT_PUBLIC_BACKEND_URL` points to your live backend.
+- Backend supports the API routes listed above.
+- `npm run check` passes in CI.

@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 import { getProductById, getProducts } from "@/lib/api";
-import type { Product } from "@/lib/api";
+import type { Product } from "@/lib/types";
 
 import ProductCard from "@/components/products/ProductCard";
 // import AddToCartButton from "@/components/products/AddToCartButton";
@@ -26,17 +26,23 @@ export default function ProductDetailsPage({
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Fetch product and related products from backend
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      setErrorMessage(null);
       
       // Fetch the product
       const productData = await getProductById(id);
       
       if (!productData) {
-        notFound();
+        setProduct(null);
+        setRelatedProducts([]);
+        setErrorMessage("We could not load this product right now.");
+        setLoading(false);
+        return;
       }
       
       setProduct(productData);
@@ -46,8 +52,7 @@ export default function ProductDetailsPage({
       const related = allProducts.filter(
         (item) =>
           item.category === productData.category &&
-          item._id !== productData._id &&
-          item.id !== productData.id
+          String(item.id) !== String(productData.id)
       );
       
       setRelatedProducts(related);
@@ -95,6 +100,16 @@ export default function ProductDetailsPage({
       {loading ? (
         <div className="flex items-center justify-center h-96">
           <p className="text-gray-500">Loading product...</p>
+        </div>
+      ) : errorMessage ? (
+        <div className="h-96 flex flex-col items-center justify-center gap-4 text-center">
+          <p className="text-gray-500">{errorMessage}</p>
+          <Link
+            href="/shop"
+            className="rounded bg-gray-900 px-5 py-2 text-white hover:bg-gray-800 transition"
+          >
+            Back to shop
+          </Link>
         </div>
       ) : !product ? (
         <div className="flex items-center justify-center h-96">
@@ -213,7 +228,7 @@ export default function ProductDetailsPage({
             >
               {relatedProducts.map((item, index) => (
                 <ProductCard
-                  key={item.id || item._id}
+                  key={item.id}
                   product={item}
                   index={index}
                 />

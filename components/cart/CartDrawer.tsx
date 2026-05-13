@@ -34,17 +34,17 @@ export default function CartDrawer() {
     0
   );
 
-  const handleDecrease = (id: string | number, selectedSize: string) => {
+  const handleDecrease = (id: string, selectedSize: string) => {
     decreaseQuantity(id, selectedSize);
     pushToast("Cart quantity updated.");
   };
 
-  const handleIncrease = (id: string | number, selectedSize: string) => {
+  const handleIncrease = (id: string, selectedSize: string) => {
     increaseQuantity(id, selectedSize);
     pushToast("Cart quantity updated.");
   };
 
-  const handleRemove = (id: string | number, selectedSize: string) => {
+  const handleRemove = (id: string, selectedSize: string) => {
     removeFromCart(id, selectedSize);
     pushToast("Item removed from cart.");
   };

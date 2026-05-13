@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check } from "lucide-react";
 import Image from "next/image";
+import { submitOrder } from "@/lib/api";
+import { useAuthStore } from "@/shore/authStore";
 import { useCartStore } from "@/shore/cartStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
 
@@ -13,22 +15,41 @@ const IMAGE_PLACEHOLDER =
 
 export default function CheckoutPage() {
   const { cart, clearCart } = useCartStore();
+  const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
   const pushToast = useFeedbackStore((state) => state.pushToast);
 
   // ── All useState hooks first ──
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderStatusLabel, setOrderStatusLabel] = useState("");
+  const [dismissAuthPrompt, setDismissAuthPrompt] = useState(false);
+  const checkoutId = useId();
+  const orderNumber = `JOC-${checkoutId.replace(/[^a-zA-Z0-9]/g, "").slice(-6).toUpperCase().padStart(6, "0")}`;
   const [deliveryMethod, setDeliveryMethod] = useState<"standard" | "express" | "pickup">("standard");
   const [formData, setFormData] = useState({
     email: "",
     firstName: "",
     lastName: "",
+    phone: "",
     address: "",
     city: "",
     state: "",
     zipCode: "",
+    country: "Nigeria",
   });
+
+  const [userFirstName = "", ...userRestName] = (user?.name || "").split(" ");
+  const effectiveFormData = {
+    ...formData,
+    email: formData.email || user?.email || "",
+    firstName: formData.firstName || userFirstName,
+    lastName: formData.lastName || userRestName.join(" "),
+    phone: formData.phone,
+    country: formData.country || "Nigeria",
+  };
+  const showAuthPrompt = !user && !dismissAuthPrompt;
 
   // ── Derived values after hooks ──
   const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -42,9 +63,6 @@ export default function CheckoutPage() {
       : 2000;
   const total = subtotal + shipping;
 
-  // ── Stable order number (won't change on re-render) ──
-  const [orderNumber] = useState(`JOC-${Date.now().toString().slice(-6)}`);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -52,28 +70,70 @@ export default function CheckoutPage() {
 
   const validateShippingStep = () => {
     if (
-      !formData.email.trim() ||
-      !formData.firstName.trim() ||
-      !formData.lastName.trim() ||
-      !formData.address.trim() ||
-      !formData.city.trim() ||
-      !formData.state.trim() ||
-      !formData.zipCode.trim()
+      !effectiveFormData.email.trim() ||
+      !effectiveFormData.firstName.trim() ||
+      !effectiveFormData.lastName.trim() ||
+      !effectiveFormData.phone.trim() ||
+      !effectiveFormData.address.trim() ||
+      !effectiveFormData.city.trim() ||
+      !effectiveFormData.state.trim() ||
+      !effectiveFormData.zipCode.trim()
     ) {
       pushToast("Please complete all required fields.");
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(effectiveFormData.email)) {
       pushToast("Please enter a valid email.");
       return false;
     }
+
+    if (!/^\d{5,10}$/.test(effectiveFormData.zipCode.trim())) {
+      pushToast("Please enter a valid ZIP/postal code.");
+      return false;
+    }
+
     return true;
   };
 
   const handlePlaceOrder = async () => {
+    if (loading) {
+      return;
+    }
+
+    if (!validateShippingStep()) {
+      setStep(1);
+      return;
+    }
+
+    if (cart.length === 0) {
+      pushToast("Your cart is empty.");
+      return;
+    }
+
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    const result = await submitOrder(
+      {
+        shippingAddress: {
+          name: `${effectiveFormData.firstName.trim()} ${effectiveFormData.lastName.trim()}`.trim(),
+          email: effectiveFormData.email.trim(),
+          phone: effectiveFormData.phone.trim(),
+          address: effectiveFormData.address.trim(),
+          city: effectiveFormData.city.trim(),
+          postalCode: effectiveFormData.zipCode.trim(),
+          country: effectiveFormData.country.trim() || "Nigeria",
+        },
+      },
+      token || undefined
+    );
     setLoading(false);
+
+    if (!result.ok) {
+      pushToast(result.message);
+      return;
+    }
+
+    setOrderStatusLabel(result.message);
+    pushToast(result.message);
     setOrderPlaced(true);
     clearCart();
   };
@@ -104,13 +164,16 @@ export default function CheckoutPage() {
             </div>
             <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 mb-4">Order Placed!</h1>
             <p className="text-gray-600 mb-8">
-              Thank you for your purchase. We'll send you an email confirmation shortly.
+              Thank you for your purchase. We&apos;ll send you an email confirmation shortly.
             </p>
+            {orderStatusLabel && (
+              <p className="text-sm text-gray-500 mb-6">{orderStatusLabel}</p>
+            )}
             <p className="text-lg font-semibold text-gray-900 mb-2">
               Order Total: ₦{total.toLocaleString()}
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              Order #{orderNumber} · Confirmation sent to {formData.email}
+              Order #{orderNumber} · Confirmation sent to {effectiveFormData.email}
             </p>
           </motion.div>
 
@@ -155,6 +218,40 @@ export default function CheckoutPage() {
   // ── Main checkout ──
   return (
     <main className="px-4 md:px-8 py-10 bg-gray-50">
+      {showAuthPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+          <motion.div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            initial={{ opacity: 0, y: 16, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <p className="text-xs uppercase tracking-[0.22em] text-gray-500">Checkout Account</p>
+            <h2 className="mt-2 text-2xl font-semibold text-gray-900">Sign up or continue checkout</h2>
+            <p className="mt-3 text-sm text-gray-600">
+              Create an account to save your details and track future orders, or continue as a guest.
+            </p>
+
+            <div className="mt-6 flex flex-col gap-3">
+              <Link
+                href="/auth"
+                className="w-full rounded-full bg-gray-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-gray-800"
+              >
+                Sign Up / Login
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => setDismissAuthPrompt(true)}
+                className="w-full rounded-full border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                Continue as Guest
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       <motion.div
         className="max-w-7xl mx-auto"
         initial="hidden"
@@ -220,7 +317,9 @@ export default function CheckoutPage() {
                     <input
                       type="email"
                       name="email"
-                      value={formData.email}
+                      autoComplete="email"
+                      required
+                      value={effectiveFormData.email}
                       onChange={handleInputChange}
                       placeholder="your@email.com"
                       className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
@@ -233,7 +332,9 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         name="firstName"
-                        value={formData.firstName}
+                        autoComplete="given-name"
+                        required
+                        value={effectiveFormData.firstName}
                         onChange={handleInputChange}
                         placeholder="John"
                         className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
@@ -244,7 +345,9 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         name="lastName"
-                        value={formData.lastName}
+                        autoComplete="family-name"
+                        required
+                        value={effectiveFormData.lastName}
                         onChange={handleInputChange}
                         placeholder="Doe"
                         className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
@@ -253,10 +356,26 @@ export default function CheckoutPage() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Phone*</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      autoComplete="tel"
+                      required
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="08012345678"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                    />
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">Address*</label>
                     <input
                       type="text"
                       name="address"
+                      autoComplete="street-address"
+                      required
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="123 Main Street"
@@ -270,6 +389,8 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         name="city"
+                        autoComplete="address-level2"
+                        required
                         value={formData.city}
                         onChange={handleInputChange}
                         placeholder="Lagos"
@@ -281,6 +402,8 @@ export default function CheckoutPage() {
                       <input
                         type="text"
                         name="state"
+                        autoComplete="address-level1"
+                        required
                         value={formData.state}
                         onChange={handleInputChange}
                         placeholder="Lagos"
@@ -294,9 +417,26 @@ export default function CheckoutPage() {
                     <input
                       type="text"
                       name="zipCode"
+                      autoComplete="postal-code"
+                      inputMode="numeric"
+                      pattern="[0-9]{5,10}"
+                      required
                       value={formData.zipCode}
                       onChange={handleInputChange}
                       placeholder="100001"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-2">Country*</label>
+                    <input
+                      type="text"
+                      name="country"
+                      autoComplete="country-name"
+                      required
+                      value={formData.country}
+                      onChange={handleInputChange}
                       className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
                     />
                   </div>
@@ -331,6 +471,7 @@ export default function CheckoutPage() {
                     onClick={() => {
                       if (validateShippingStep()) setStep(2);
                     }}
+                    disabled={loading}
                     className="w-full bg-gray-900 text-white py-3 rounded hover:bg-gray-800 transition"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
