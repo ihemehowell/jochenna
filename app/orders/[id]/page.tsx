@@ -111,6 +111,12 @@ export default function OrderDetailsPage() {
               <h2 className="text-xl font-semibold text-gray-900">Summary</h2>
               <p className="mt-4 text-sm text-gray-600">Created: {order.createdAt ? new Date(order.createdAt).toLocaleString() : "Unknown"}</p>
               <p className="mt-2 text-sm text-gray-600">Updated: {order.updatedAt ? new Date(order.updatedAt).toLocaleString() : "Unknown"}</p>
+              {order.deliveryMethod && (
+                <p className="mt-2 text-sm text-gray-600">Delivery: {order.deliveryMethod}</p>
+              )}
+              {typeof order.shippingFee === "number" && (
+                <p className="mt-2 text-sm text-gray-600">Shipping fee: ₦{order.shippingFee.toLocaleString()}</p>
+              )}
             </section>
           </div>
         </section>

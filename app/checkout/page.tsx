@@ -24,7 +24,6 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderStatusLabel, setOrderStatusLabel] = useState("");
-  const [dismissAuthPrompt, setDismissAuthPrompt] = useState(false);
   const checkoutId = useId();
   const orderNumber = `JOC-${checkoutId.replace(/[^a-zA-Z0-9]/g, "").slice(-6).toUpperCase().padStart(6, "0")}`;
   const [deliveryMethod, setDeliveryMethod] = useState<"standard" | "express" | "pickup">("standard");
@@ -49,7 +48,7 @@ export default function CheckoutPage() {
     phone: formData.phone,
     country: formData.country || "Nigeria",
   };
-  const showAuthPrompt = !user && !dismissAuthPrompt;
+  const showAuthPrompt = !user;
 
   // ── Derived values after hooks ──
   const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -122,6 +121,7 @@ export default function CheckoutPage() {
           postalCode: effectiveFormData.zipCode.trim(),
           country: effectiveFormData.country.trim() || "Nigeria",
         },
+        deliveryMethod,
       },
       token || undefined
     );
@@ -227,9 +227,9 @@ export default function CheckoutPage() {
             transition={{ duration: 0.2 }}
           >
             <p className="text-xs uppercase tracking-[0.22em] text-gray-500">Checkout Account</p>
-            <h2 className="mt-2 text-2xl font-semibold text-gray-900">Sign up or continue checkout</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-gray-900">Sign in to continue</h2>
             <p className="mt-3 text-sm text-gray-600">
-              Create an account to save your details and track future orders, or continue as a guest.
+                You need to sign in before placing an order so we can create your order and update your cart.
             </p>
 
             <div className="mt-6 flex flex-col gap-3">
@@ -237,16 +237,15 @@ export default function CheckoutPage() {
                 href="/auth"
                 className="w-full rounded-full bg-gray-900 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-gray-800"
               >
-                Sign Up / Login
-              </Link>
+                  Go to Login
+                </Link>
 
-              <button
-                type="button"
-                onClick={() => setDismissAuthPrompt(true)}
-                className="w-full rounded-full border border-gray-300 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                <Link
+                  href="/shop"
+                  className="w-full rounded-full border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50"
               >
-                Continue as Guest
-              </button>
+                  Back to Shop
+                </Link>
             </div>
           </motion.div>
         </div>
@@ -528,7 +527,7 @@ export default function CheckoutPage() {
               <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
                 {cart.map((item) => (
                   <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4 pb-4 border-b">
-                    <div className="relative w-16 h-20 bg-gray-100 flex-shrink-0">
+                    <div className="relative w-16 h-20 shrink-0 bg-gray-100">
                       <Image
                         src={item.images?.[0] || IMAGE_PLACEHOLDER}
                         alt={item.name}
@@ -558,12 +557,9 @@ export default function CheckoutPage() {
                   <span>{shipping === 0 ? "Free" : `₦${shipping.toLocaleString()}`}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
-                    <span>Delivery</span>
-
-                    <span className="capitalize">
-                        {deliveryMethod}
-                    </span>
-                    </div>
+                  <span>Delivery</span>
+                  <span className="capitalize">{deliveryMethod}</span>
+                </div>
                 <div className="flex justify-between text-lg font-semibold text-gray-900 pt-3 border-t">
                   <span>Total</span>
                   <span>₦{total.toLocaleString()}</span>

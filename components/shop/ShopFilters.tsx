@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import type { AgeGroup, Product } from "@/lib/types";
 
 export type ShopFiltersState = {
@@ -54,18 +55,32 @@ export default function ShopFilters({
   categories,
   ageGroups,
 }: ShopFiltersProps) {
+  const activeCount =
+    Number(filters.category !== "all") +
+    Number(filters.ageGroup !== "all") +
+    Number(filters.condition !== "all") +
+    Number(filters.gender !== "all");
+
   const setFilters = (next: Partial<ShopFiltersState>) =>
     onFiltersChange({ ...filters, ...next });
 
   return (
     <aside className="space-y-8 rounded-3xl border border-gray-200 bg-white p-5 shadow-sm lg:sticky lg:top-6">
-      <div>
-        <p className="text-xs uppercase tracking-[0.28em] text-gray-400">
-          Find fast
-        </p>
-        <h2 className="mt-2 text-lg font-semibold text-gray-900">
-          Search by age, condition, and category
-        </h2>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-[0.28em] text-gray-400">
+            Find fast
+          </p>
+          <h2 className="mt-2 text-lg font-semibold text-gray-900">
+            Search by age, condition, and category
+          </h2>
+        </div>
+
+        {activeCount > 0 && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-900 px-3 py-1 text-xs font-semibold text-white">
+            {activeCount} active
+          </span>
+        )}
       </div>
 
       <div>
@@ -88,8 +103,9 @@ export default function ShopFilters({
           </h3>
           <button
             onClick={() => setFilters({ category: "all" })}
-            className="text-xs font-medium text-gray-500 hover:text-gray-900"
+            className="inline-flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-900"
           >
+            <X size={12} />
             Reset
           </button>
         </div>
@@ -211,15 +227,6 @@ export default function ShopFilters({
             </button>
           ))}
         </div>
-      </div>
-
-      <div className="rounded-2xl bg-gray-50 p-4 text-sm text-gray-600">
-        <p className="font-medium text-gray-900">Trust layer</p>
-        <ul className="mt-2 space-y-2">
-          <li>• Clean & verified items</li>
-          <li>• Affordable thrift pricing</li>
-          <li>• Carefully inspected baby goods</li>
-        </ul>
       </div>
     </aside>
   );

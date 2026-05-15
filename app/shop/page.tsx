@@ -1,6 +1,8 @@
 "use client";
 
+import { ChevronDown, Filter } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   filterProducts,
   getProductCategories,
@@ -11,6 +13,7 @@ import ProductCard from "@/components/products/ProductCard";
 import ShopFilters, {
   type ShopFiltersState,
 } from "@/components/shop/ShopFilters";
+import { findShopCategoryGroup } from "@/lib/shopTaxonomy";
 
 const DEFAULT_CATEGORIES = [
   { key: "clothes", label: "Clothes" },
@@ -21,9 +24,12 @@ const DEFAULT_CATEGORIES = [
 ];
 
 export default function ShopPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [loading, setLoading] = useState(true);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -37,6 +43,17 @@ export default function ShopPage() {
     condition: "all",
   });
   const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "best-selling">("featured");
+  const categoryParam = searchParams.get("category")?.trim() || "";
+  const subcategoryParam = searchParams.get("subcategory")?.trim() || "";
+  const activeCategory = categoryParam || filters.category;
+  const activeSubcategory = subcategoryParam;
+  const activeCategoryGroup = findShopCategoryGroup(activeCategory === "all" ? "" : activeCategory);
+
+  const formatCategory = (category: string) =>
+    category
+      .split(" ")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -53,9 +70,12 @@ export default function ShopPage() {
     const fetchFilteredProducts = async () => {
       setLoading(true);
 
+      const baseSearch = search.trim();
+      const mergedSearch = [baseSearch, activeSubcategory].filter(Boolean).join(" ");
+
       const params: FilterProductsParams = {
-        search: search.trim() || undefined,
-        category: filters.category === "all" ? undefined : filters.category,
+        search: mergedSearch || undefined,
+        category: activeCategory === "all" ? undefined : activeCategory,
         sort: sortBy === "featured" ? undefined : sortBy,
         page,
         limit,
@@ -72,7 +92,7 @@ export default function ShopPage() {
     };
 
     fetchFilteredProducts();
-  }, [filters, limit, page, search, sortBy]);
+  }, [activeCategory, activeSubcategory, filters, limit, page, search, sortBy]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -82,6 +102,17 @@ export default function ShopPage() {
   const handleFilterChange = (next: ShopFiltersState) => {
     setFilters(next);
     setPage(1);
+
+    if (categoryParam || subcategoryParam) {
+      const nextCategory = next.category;
+
+      if (nextCategory === "all") {
+        router.push("/shop");
+        return;
+      }
+
+      router.push(`/shop?category=${encodeURIComponent(nextCategory)}`);
+    }
   };
 
   const handleSortChange = (value: "featured" | "price-asc" | "price-desc" | "best-selling") => {
@@ -107,54 +138,81 @@ export default function ShopPage() {
               <p className="uppercase tracking-[0.3em] text-sm text-gray-500 mb-2">
                 Find items for my child quickly
               </p>
-
-              <h1 className="text-4xl md:text-5xl font-semibold text-gray-900">
-                Thrift for Kids — Clothes, Toys & Baby
-              </h1>
             </div>
           </div>
 
-          {/* Trust Layer */}
-          <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-700">
-            <div className="flex items-center gap-3">
-              <span className="text-green-700">✔</span>
-              <span>Clean & verified items</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-green-700">✔</span>
-              <span>Affordable thrift pricing</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-green-700">✔</span>
-              <span>Carefully inspected baby goods</span>
-            </div>
-          </div>
+          
         </div>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr] lg:gap-12">
-          <ShopFilters
-            search={search}
-            onSearchChange={handleSearchChange}
-            filters={filters}
-            onFiltersChange={handleFilterChange}
-            categories={categories}
-            ageGroups={ageGroups}
-          />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => setFiltersOpen((current) => !current)}
+            className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition hover:border-gray-300"
+          >
+            <Filter size={16} />
+            {filtersOpen ? "Hide filters" : "Show filters"}
+            <ChevronDown
+              size={16}
+              className={`transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+        </div>
+
+        <div
+          className={
+            filtersOpen
+              ? "grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr] lg:gap-12"
+              : "grid grid-cols-1 gap-8"
+          }
+        >
+          {filtersOpen && (
+            <div className="space-y-4">
+              <ShopFilters
+                search={search}
+                onSearchChange={handleSearchChange}
+                filters={filters}
+                onFiltersChange={handleFilterChange}
+                categories={categories}
+                ageGroups={ageGroups}
+              />
+            </div>
+          )}
 
           {/* Products */}
           <section className="space-y-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4 mb-8    sm:flex-row sm:items-center sm:justify-between sm:px-5">
+              <div className="flex items-center  ">
                 <p className="text-gray-500">{total} items</p>
 
                 {/* Active chips */}
                 <div className="flex flex-wrap gap-2">
-                  {filters.category !== "all" && (
+                  {activeCategory !== "all" && (
                     <button
                       className="rounded-full bg-gray-100 px-3 py-1 text-xs capitalize text-gray-700 transition hover:bg-gray-200"
-                      onClick={() => setFilters((s) => ({ ...s, category: "all" }))}
+                      onClick={() =>
+                        categoryParam
+                          ? router.push("/shop")
+                          : setFilters((s) => ({ ...s, category: "all" }))
+                      }
                     >
-                      {filters.category}
+                      {formatCategory(activeCategory)}
+                    </button>
+                  )}
+
+                  {activeSubcategory && (
+                    <button
+                      className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-200"
+                      onClick={() => {
+                        if (activeCategory !== "all") {
+                          router.push(`/shop?category=${encodeURIComponent(activeCategory)}`);
+                          return;
+                        }
+
+                        router.push("/shop");
+                      }}
+                    >
+                      {activeSubcategory}
                     </button>
                   )}
 
@@ -205,22 +263,57 @@ export default function ShopPage() {
                 </div>
               </div>
 
+              {activeCategoryGroup && activeCategoryGroup.subcategories.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                  {activeCategoryGroup.subcategories.map((subcategory) => {
+                    const isActiveSubcategory =
+                      subcategory.toLowerCase() === activeSubcategory.toLowerCase();
+
+                    return (
+                      <button
+                        key={subcategory}
+                        type="button"
+                        onClick={() =>
+                          router.push(
+                            `/shop?category=${encodeURIComponent(activeCategory)}&subcategory=${encodeURIComponent(subcategory)}`
+                          )
+                        }
+                        className={`rounded-full px-3 py-1 text-xs transition ${
+                          isActiveSubcategory
+                            ? "bg-gray-900 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                        }`}
+                      >
+                        {subcategory}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+                  
               <label className="flex items-center gap-3 text-sm text-gray-500">
-                Sort by
-                <select
-                  value={sortBy}
-                  onChange={(e) =>
-                    handleSortChange(
-                      e.target.value as "featured" | "price-asc" | "price-desc" | "best-selling"
-                    )
-                  }
-                  className="border border-gray-300 bg-white px-3 py-2 text-gray-800 outline-none focus:border-black"
-                >
-                  <option value="featured">Featured</option>
-                  <option value="best-selling">Best Selling</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
-                </select>
+                <span className="whitespace-nowrap font-medium text-gray-700">Sort by</span>
+                <span className="relative inline-flex min-w-55 items-center">
+                  <select
+                    value={sortBy}
+                    onChange={(e) =>
+                      handleSortChange(
+                        e.target.value as "featured" | "price-asc" | "price-desc" | "best-selling"
+                      )
+                    }
+                    className="w-full appearance-none rounded-full border border-gray-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                  >
+                    <option value="featured">Featured</option>
+                    <option value="best-selling">Best Selling</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                  </select>
+                  <ChevronDown
+                    size={16}
+                    className="pointer-events-none absolute right-4 text-gray-500"
+                  />
+                </span>
               </label>
             </div>
 

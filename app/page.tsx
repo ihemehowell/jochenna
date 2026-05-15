@@ -1,10 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import FeaturedProducts from "@/components/products/FeaturedProduct";
+import { getProductCategories } from "@/lib/api";
 
 export default function HomePage() {
+  const [categories, setCategories] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getProductCategories();
+      setCategories(data);
+    };
+
+    fetchCategories();
+  }, []);
+
   const heroVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: (i: number) => ({
@@ -25,32 +38,11 @@ export default function HomePage() {
       transition: { duration: 0.6 },
     },
   };
-
-  const categories = [
-    {
-      title: "Clothes",
-      copy: "Baby, toddler, and kids outfits sorted by age and condition.",
-      href: "/shop",
-      accent: "from-sky-100 to-white",
-    },
-    {
-      title: "Toys",
-      copy: "Educational, fun, and safe playthings for every stage.",
-      href: "/shop",
-      accent: "from-rose-100 to-white",
-    },
-    {
-      title: "Baby Essentials",
-      copy: "Newborn basics, feeding items, and everyday care essentials.",
-      href: "/shop",
-      accent: "from-amber-100 to-white",
-    },
-    {
-      title: "Shoes",
-      copy: "Small-step shoes for toddlers and older kids, grouped by age.",
-      href: "/shop",
-      accent: "from-emerald-100 to-white",
-    },
+  const categoryAccents = [
+    "from-sky-100 to-white",
+    "from-rose-100 to-white",
+    "from-amber-100 to-white",
+    "from-emerald-100 to-white",
   ];
 
   return (
@@ -196,8 +188,8 @@ export default function HomePage() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {categories.map((category, index) => (
               <motion.div
-                key={category.title}
-                className={`rounded-[1.75rem] bg-linear-to-br ${category.accent} border border-gray-200 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}
+                key={category}
+                className={`rounded-[1.75rem] bg-linear-to-br ${categoryAccents[index % categoryAccents.length]} border border-gray-200 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, amount: 0.3 }}
@@ -211,19 +203,19 @@ export default function HomePage() {
                 }}
               >
                 <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-lg font-semibold text-gray-900 shadow-sm">
-                  {category.title.charAt(0)}
+                  {category.charAt(0)}
                 </div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-600">
-                  {category.title}
+                  {category}
                 </p>
                 <p className="mt-4 text-base leading-7 text-gray-700">
-                  {category.copy}
+                  Browse {category.toLowerCase()} sourced from the backend catalog.
                 </p>
                 <Link
-                  href={category.href}
+                  href="/shop"
                   className="mt-6 inline-flex text-sm font-semibold text-gray-900 underline decoration-gray-400 underline-offset-4"
                 >
-                  Browse {category.title.toLowerCase()}
+                  Browse {category.toLowerCase()}
                 </Link>
               </motion.div>
             ))}

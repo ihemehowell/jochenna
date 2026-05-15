@@ -86,8 +86,11 @@ type RawOrder = {
   id?: unknown;
   status?: unknown;
   total?: unknown;
+  totalPrice?: unknown;
   items?: unknown;
   shippingAddress?: unknown;
+  deliveryMethod?: unknown;
+  shippingFee?: unknown;
   createdAt?: unknown;
   updatedAt?: unknown;
   user?: unknown;
@@ -223,6 +226,8 @@ export type ApiOrder = {
   total: number;
   items: ApiCartItem[];
   shippingAddress: ShippingAddress | null;
+  deliveryMethod?: "standard" | "express" | "pickup";
+  shippingFee?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -237,9 +242,11 @@ function normalizeOrder(order: RawOrder): ApiOrder {
   return {
     id: asString(order._id ?? order.id, "unknown-order"),
     status: (asString(order.status, "pending") as ApiOrderStatus) || "pending",
-    total: asNumber(order.total, 0),
+    total: asNumber(order.total ?? order.totalPrice, 0),
     items: normalizeCartItems(rawItems),
     shippingAddress,
+    deliveryMethod: asString(order.deliveryMethod, "") as ApiOrder["deliveryMethod"],
+    shippingFee: asNumber(order.shippingFee, 0),
     createdAt: typeof order.createdAt === "string" ? order.createdAt : undefined,
     updatedAt: typeof order.updatedAt === "string" ? order.updatedAt : undefined,
   };
@@ -634,17 +641,14 @@ type SubmitOrderResult = {
 };
 
 export async function submitOrder(
-  payload: { shippingAddress: ShippingAddress },
+  payload: { shippingAddress: ShippingAddress; deliveryMethod: "standard" | "express" | "pickup" },
   token?: string
 ): Promise<SubmitOrderResult> {
   try {
     if (!token) {
-      await new Promise((resolve) => setTimeout(resolve, 700));
       return {
-        ok: true,
-        message: "Checkout completed in guest/demo mode.",
-        orderId: `DEMO-${Date.now().toString().slice(-6)}`,
-        isMock: true,
+        ok: false,
+        message: "Please sign in to place an order.",
       };
     }
 
@@ -658,16 +662,6 @@ export async function submitOrder(
     });
 
     if (!response.ok) {
-      if (response.status === 404 || response.status === 501) {
-        await new Promise((resolve) => setTimeout(resolve, 700));
-        return {
-          ok: true,
-          message: "Order endpoint is not available yet. Checkout completed in demo mode.",
-          orderId: `DEMO-${Date.now().toString().slice(-6)}`,
-          isMock: true,
-        };
-      }
-
       let errorMessage = `Unable to place order (${response.status}).`;
       try {
         const body = (await response.json()) as { message?: string };
@@ -995,7 +989,8 @@ export async function getOrderById(
       };
     }
 
-    return { ok: true, order: normalizeOrder(body) };
+    const orderSource = (body.order ?? body) as RawOrder;
+    return { ok: true, order: normalizeOrder(orderSource) };
   } catch (error) {
     console.error("Error fetching order:", error);
     return { ok: false, message: "Could not connect to orders service." };
