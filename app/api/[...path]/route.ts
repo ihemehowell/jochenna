@@ -11,6 +11,22 @@ const HOP_BY_HOP_HEADERS = new Set([
   "upgrade",
 ]);
 
+function logProxyEvent(level: "info" | "warn" | "error", message: string, details?: unknown) {
+  const prefix = "[jochenna-proxy]";
+
+  if (level === "info") {
+    console.info(prefix, message, details ?? "");
+    return;
+  }
+
+  if (level === "warn") {
+    console.warn(prefix, message, details ?? "");
+    return;
+  }
+
+  console.error(prefix, message, details ?? "");
+}
+
 function resolveBackendBaseUrl(): string | null {
   const configuredBaseUrl =
     process.env.BACKEND_URL?.trim() || process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
@@ -33,6 +49,7 @@ async function proxyRequest(
   const backendBaseUrl = resolveBackendBaseUrl();
 
   if (!backendBaseUrl) {
+    logProxyEvent("error", "Backend URL is missing for this deployment.");
     return NextResponse.json(
       { message: "Backend URL is not configured for this deployment." },
       { status: 500 }
@@ -42,6 +59,11 @@ async function proxyRequest(
   const { path = [] } = await context.params;
   const targetPath = path.join("/");
   const targetUrl = `${backendBaseUrl}/api/${targetPath}${request.nextUrl.search}`;
+
+  logProxyEvent("info", "Proxying request.", {
+    method: request.method,
+    targetUrl,
+  });
 
   const headers = new Headers(request.headers);
   headers.delete("host");
@@ -61,6 +83,23 @@ async function proxyRequest(
   const responseHeaders = new Headers(upstreamResponse.headers);
 
   HOP_BY_HOP_HEADERS.forEach((headerName) => responseHeaders.delete(headerName));
+
+  if (!upstreamResponse.ok) {
+    const body = await upstreamResponse.clone().text();
+    logProxyEvent("error", "Upstream API returned a non-ok response.", {
+      method: request.method,
+      targetUrl,
+      status: upstreamResponse.status,
+      statusText: upstreamResponse.statusText,
+      body,
+    });
+  } else {
+    logProxyEvent("info", "Upstream API request succeeded.", {
+      method: request.method,
+      targetUrl,
+      status: upstreamResponse.status,
+    });
+  }
 
   return new NextResponse(upstreamResponse.body, {
     status: upstreamResponse.status,

@@ -1,13 +1,29 @@
+import { FALLBACK_PRODUCTS } from "@/data/fallbackProducts";
 import type {
   AgeGroup,
   Product,
   ProductCategory,
   ProductCondition,
 } from "./types";
-import { FALLBACK_PRODUCTS } from "@/data/fallbackProducts";
 
 const DEFAULT_DEV_API_BASE_URL = "http://localhost:5000";
 let hasWarnedAboutEnv = false;
+
+function logApiEvent(level: "info" | "warn" | "error", message: string, details?: unknown) {
+  const prefix = "[jochenna-api]";
+
+  if (level === "info") {
+    console.info(prefix, message, details ?? "");
+    return;
+  }
+
+  if (level === "warn") {
+    console.warn(prefix, message, details ?? "");
+    return;
+  }
+
+  console.error(prefix, message, details ?? "");
+}
 
 function resolveApiBaseUrl(): string {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
@@ -16,7 +32,8 @@ function resolveApiBaseUrl(): string {
   if (!configuredBaseUrl) {
     if (!hasWarnedAboutEnv) {
       hasWarnedAboutEnv = true;
-      console.warn(
+      logApiEvent(
+        "warn",
         isProduction
           ? "NEXT_PUBLIC_BACKEND_URL is not set in production. Falling back to same-origin /api."
           : "NEXT_PUBLIC_BACKEND_URL is not set. Falling back to http://localhost:5000."
@@ -27,11 +44,14 @@ function resolveApiBaseUrl(): string {
   }
 
   try {
-    return new URL(configuredBaseUrl).toString().replace(/\/$/, "");
+    const normalized = new URL(configuredBaseUrl).toString().replace(/\/$/, "");
+    logApiEvent("info", "Resolved API base URL.", normalized);
+    return normalized;
   } catch {
     if (!hasWarnedAboutEnv) {
       hasWarnedAboutEnv = true;
-      console.warn(
+      logApiEvent(
+        "warn",
         isProduction
           ? `Invalid NEXT_PUBLIC_BACKEND_URL (${configuredBaseUrl}) in production. Falling back to same-origin /api.`
           : `Invalid NEXT_PUBLIC_BACKEND_URL (${configuredBaseUrl}). Falling back to http://localhost:5000.`
@@ -49,11 +69,7 @@ function buildApiUrl(pathname: string): string {
 }
 
 function buildAuthHeaders(token?: string): HeadersInit {
-  return token
-    ? {
-        Authorization: `Bearer ${token}`,
-      }
-    : {};
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
 type RawProduct = {
@@ -116,19 +132,19 @@ function asNumber(value: unknown, fallback = 0): number {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
   }
+
   if (typeof value === "string") {
     const parsed = Number(value);
     if (Number.isFinite(parsed)) {
       return parsed;
     }
   }
+
   return fallback;
 }
 
 function asStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((item): item is string => typeof item === "string")
-    : [];
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
 function asGender(value: unknown): Product["gender"] {
@@ -146,22 +162,18 @@ function asCategory(value: unknown): ProductCategory {
 function asCondition(value: unknown): ProductCondition {
   const normalized = asString(value);
   const allowed: ProductCondition[] = ["like-new", "gently-used", "used"];
-  return allowed.includes(normalized as ProductCondition)
-    ? (normalized as ProductCondition)
-    : "gently-used";
+  return allowed.includes(normalized as ProductCondition) ? (normalized as ProductCondition) : "gently-used";
 }
 
 function asAgeGroups(value: unknown): AgeGroup[] {
   const allowed: AgeGroup[] = ["0-6m", "6-12m", "1-2y", "3-5y", "6-10y"];
   return Array.isArray(value)
     ? value.filter(
-        (item): item is AgeGroup =>
-          typeof item === "string" && allowed.includes(item as AgeGroup)
+        (item): item is AgeGroup => typeof item === "string" && allowed.includes(item as AgeGroup)
       )
     : [];
 }
 
-// Helper function to normalize product data (convert MongoDB _id to id)
 function normalizeProduct(product: RawProduct): Product {
   const id = product._id ?? product.id;
   return {
@@ -331,10 +343,7 @@ function matchesFilter(product: Product, params: FilterProductsParams): boolean 
     return true;
   }
 
-  const haystack = [product.name, product.category, product.subcategory ?? ""]
-    .join(" ")
-    .toLowerCase();
-
+  const haystack = [product.name, product.category, product.subcategory ?? ""].join(" ").toLowerCase();
   return haystack.includes(search);
 }
 
@@ -356,41 +365,90 @@ function sortProducts(products: Product[], sort?: FilterProductsParams["sort"]):
   return sorted;
 }
 
-// Fetch all products
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<{ ok: boolean; status: number; statusText: string; data?: T; text?: string }> {
+  const response = await fetch(url, init);
+  let data: T | undefined;
+  let text: string | undefined;
+
+  try {
+    data = (await response.json()) as T;
+  } catch {
+    try {
+      text = await response.text();
+    } catch {
+      text = undefined;
+    }
+  }
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    statusText: response.statusText,
+    data,
+    text,
+  };
+}
+
+function fallbackProductsForFilter(params: FilterProductsParams): FilterProductsResult {
+  const fallbackProducts = sortProducts(FALLBACK_PRODUCTS.filter((product) => matchesFilter(product, params)), params.sort);
+  const total = fallbackProducts.length;
+  const page = params.page ?? 1;
+  const limit = params.limit ?? 12;
+  const startIndex = (page - 1) * limit;
+
+  return {
+    products: fallbackProducts.slice(startIndex, startIndex + limit),
+    page,
+    limit,
+    total,
+    totalPages: Math.max(Math.ceil(total / limit), 1),
+  };
+}
+
 export async function getProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(buildApiUrl("/api/products"), {
-      cache: "no-store", // Disable caching for fresh data
-    });
+    const url = buildApiUrl("/api/products");
+    logApiEvent("info", "Fetching products.", url);
+    const result = await fetchJson<RawProduct[]>(url, { cache: "no-store" });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch products: ${response.statusText}`);
+    if (!result.ok || !Array.isArray(result.data)) {
+      logApiEvent("error", "Product fetch failed.", {
+        url,
+        status: result.status,
+        statusText: result.statusText,
+        body: result.text,
+      });
+      return FALLBACK_PRODUCTS;
     }
 
-    const data = (await response.json()) as RawProduct[];
-    return data.map(normalizeProduct);
+    logApiEvent("info", "Fetched products successfully.", { url, count: result.data.length });
+    return result.data.map(normalizeProduct);
   } catch (error) {
-    console.error("Error fetching products:", error);
+    logApiEvent("error", "Error fetching products; using fallback catalog.", error);
     return FALLBACK_PRODUCTS;
   }
 }
 
 export async function getProductCategories(): Promise<string[]> {
   try {
-    const response = await fetch(buildApiUrl("/api/products/categories"), {
-      cache: "no-store",
-    });
+    const url = buildApiUrl("/api/products/categories");
+    logApiEvent("info", "Fetching product categories.", url);
+    const result = await fetchJson<unknown>(url, { cache: "no-store" });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.statusText}`);
+    if (!result.ok || !Array.isArray(result.data)) {
+      logApiEvent("error", "Category fetch failed.", {
+        url,
+        status: result.status,
+        statusText: result.statusText,
+        body: result.text,
+      });
+      return [];
     }
 
-    const data = (await response.json()) as unknown;
-    return Array.isArray(data)
-      ? data.filter((item): item is string => typeof item === "string")
-      : [];
+    logApiEvent("info", "Fetched product categories successfully.", { url, count: result.data.length });
+    return result.data.filter((item): item is string => typeof item === "string");
   } catch (error) {
-    console.error("Error fetching product categories:", error);
+    logApiEvent("error", "Error fetching product categories.", error);
     return [];
   }
 }
@@ -398,27 +456,29 @@ export async function getProductCategories(): Promise<string[]> {
 export async function getBestSellers(limit?: number): Promise<Product[]> {
   try {
     const query = createQueryString({ limit });
-    const response = await fetch(buildApiUrl(`/api/products/best-sellers${query}`), {
-      cache: "no-store",
-    });
+    const url = buildApiUrl(`/api/products/best-sellers${query}`);
+    logApiEvent("info", "Fetching best sellers.", url);
+    const result = await fetchJson<RawProduct[]>(url, { cache: "no-store" });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch best sellers: ${response.statusText}`);
+    if (!result.ok || !Array.isArray(result.data)) {
+      logApiEvent("error", "Best sellers fetch failed.", {
+        url,
+        status: result.status,
+        statusText: result.statusText,
+        body: result.text,
+      });
+      return [...FALLBACK_PRODUCTS].sort((left, right) => (right.sold ?? 0) - (left.sold ?? 0)).slice(0, limit ?? 4);
     }
 
-    const data = (await response.json()) as RawProduct[];
-    return Array.isArray(data) ? data.map(normalizeProduct) : [];
+    logApiEvent("info", "Fetched best sellers successfully.", { url, count: result.data.length });
+    return result.data.map(normalizeProduct);
   } catch (error) {
-    console.error("Error fetching best sellers:", error);
-    return [...FALLBACK_PRODUCTS]
-      .sort((left, right) => (right.sold ?? 0) - (left.sold ?? 0))
-      .slice(0, limit ?? 4);
+    logApiEvent("error", "Error fetching best sellers; using fallback catalog.", error);
+    return [...FALLBACK_PRODUCTS].sort((left, right) => (right.sold ?? 0) - (left.sold ?? 0)).slice(0, limit ?? 4);
   }
 }
 
-export async function filterProducts(
-  params: FilterProductsParams = {}
-): Promise<FilterProductsResult> {
+export async function filterProducts(params: FilterProductsParams = {}): Promise<FilterProductsResult> {
   const fallbackLimit = params.limit ?? 12;
 
   try {
@@ -436,73 +496,71 @@ export async function filterProducts(
       condition: params.condition,
     });
 
-    const response = await fetch(buildApiUrl(`/api/products/filters${query}`), {
-      cache: "no-store",
-    });
+    const url = buildApiUrl(`/api/products/filters${query}`);
+    logApiEvent("info", "Filtering products.", { url, params });
+    const result = await fetchJson<RawPaginatedProducts>(url, { cache: "no-store" });
 
-    if (!response.ok) {
-      throw new Error(`Failed to filter products: ${response.statusText}`);
+    if (!result.ok || !result.data || !Array.isArray(result.data.products)) {
+      logApiEvent("error", "Product filtering failed.", {
+        url,
+        status: result.status,
+        statusText: result.statusText,
+        body: result.text,
+      });
+      return fallbackProductsForFilter(params);
     }
 
-    const data = (await response.json()) as RawPaginatedProducts;
-    const rawProducts = Array.isArray(data.products) ? data.products : [];
+    const rawProducts = result.data.products;
+    logApiEvent("info", "Filtered products successfully.", {
+      url,
+      count: rawProducts.length,
+      total: asNumber(result.data.total, rawProducts.length),
+    });
 
     return {
       products: rawProducts.map(normalizeProduct),
-      page: asNumber(data.page, params.page ?? 1),
-      limit: asNumber(data.limit, fallbackLimit),
-      total: asNumber(data.total, rawProducts.length),
-      totalPages: asNumber(data.totalPages, 1),
+      page: asNumber(result.data.page, params.page ?? 1),
+      limit: asNumber(result.data.limit, fallbackLimit),
+      total: asNumber(result.data.total, rawProducts.length),
+      totalPages: asNumber(result.data.totalPages, 1),
     };
   } catch (error) {
-    console.error("Error filtering products:", error);
-
-    const fallbackProducts = sortProducts(
-      FALLBACK_PRODUCTS.filter((product) => matchesFilter(product, params)),
-      params.sort
-    );
-
-    const total = fallbackProducts.length;
-    const page = params.page ?? 1;
-    const limit = fallbackLimit;
-    const startIndex = (page - 1) * limit;
-
-    return {
-      products: fallbackProducts.slice(startIndex, startIndex + limit),
-      page,
-      limit,
-      total,
-      totalPages: Math.max(Math.ceil(total / limit), 1),
-    };
+    logApiEvent("error", "Error filtering products; using fallback catalog.", error);
+    return fallbackProductsForFilter(params);
   }
 }
 
-// Fetch single product by ID
 export async function getProductById(id: string): Promise<Product | null> {
   try {
-    const response = await fetch(buildApiUrl(`/api/products/${id}`), {
-      cache: "no-store",
-    });
+    const url = buildApiUrl(`/api/products/${id}`);
+    logApiEvent("info", "Fetching product by id.", { url, id });
+    const result = await fetchJson<RawProduct>(url, { cache: "no-store" });
 
-    if (!response.ok) {
+    if (!result.ok || !result.data) {
+      logApiEvent("warn", "Product by id request returned non-ok response.", {
+        url,
+        status: result.status,
+        statusText: result.statusText,
+        body: result.text,
+      });
       return null;
     }
 
-    const data = (await response.json()) as RawProduct;
-    return normalizeProduct(data);
+    logApiEvent("info", "Fetched product by id successfully.", { url, id });
+    return normalizeProduct(result.data);
   } catch (error) {
-    console.error(`Error fetching product ${id}:`, error);
+    logApiEvent("error", `Error fetching product ${id}.`, error);
     return null;
   }
 }
 
-// Create a new product (for admin use)
-export async function createProduct(product: Omit<Product, "id">): Promise<Product | null> {
+export async function createProductAdmin(product: Omit<Product, "id">, token?: string): Promise<Product | null> {
   try {
     const response = await fetch(buildApiUrl("/api/products"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
       },
       body: JSON.stringify(product),
     });
@@ -514,12 +572,52 @@ export async function createProduct(product: Omit<Product, "id">): Promise<Produ
     const data = (await response.json()) as RawProduct;
     return normalizeProduct(data);
   } catch (error) {
-    console.error("Error creating product:", error);
+    logApiEvent("error", "Error creating product.", error);
     return null;
   }
 }
 
-// Seed the database with starter products
+export async function updateProductAdmin(productId: string, product: Partial<Omit<Product, "id">>, token?: string): Promise<Product | null> {
+  try {
+    const response = await fetch(buildApiUrl(`/api/products/${productId}`), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
+      },
+      body: JSON.stringify(product),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update product: ${response.statusText}`);
+    }
+
+    const data = (await response.json()) as RawProduct;
+    return normalizeProduct(data);
+  } catch (error) {
+    logApiEvent("error", "Error updating product.", error);
+    return null;
+  }
+}
+
+export async function deleteProductAdmin(productId: string, token?: string): Promise<boolean> {
+  try {
+    const response = await fetch(buildApiUrl(`/api/products/${productId}`), {
+      method: "DELETE",
+      headers: buildAuthHeaders(token),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete product: ${response.statusText}`);
+    }
+
+    return true;
+  } catch (error) {
+    logApiEvent("error", "Error deleting product.", error);
+    return false;
+  }
+}
+
 export async function seedProducts(): Promise<Product[]> {
   try {
     const response = await fetch(buildApiUrl("/api/products/seed"), {
@@ -536,7 +634,7 @@ export async function seedProducts(): Promise<Product[]> {
     const data = (await response.json()) as RawProduct[] | RawProduct;
     return Array.isArray(data) ? data.map(normalizeProduct) : [];
   } catch (error) {
-    console.error("Error seeding products:", error);
+    logApiEvent("error", "Error seeding products.", error);
     return [];
   }
 }
@@ -565,20 +663,14 @@ export async function getCart(token: string): Promise<{ ok: boolean; items: ApiC
       ? body.data
       : [];
 
-    return {
-      ok: true,
-      items: normalizeCartItems(rawItems),
-    };
+    return { ok: true, items: normalizeCartItems(rawItems) };
   } catch (error) {
-    console.error("Error fetching cart:", error);
+    logApiEvent("error", "Error fetching cart.", error);
     return { ok: false, items: [], message: "Could not connect to cart service." };
   }
 }
 
-export async function addCartItem(
-  token: string,
-  payload: { productId: string; quantity: number; size: string }
-): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
+export async function addCartItem(token: string, payload: { productId: string; quantity: number; size: string }): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/cart/add"), {
       method: "POST",
@@ -604,15 +696,12 @@ export async function addCartItem(
 
     return { ok: true, items: normalizeCartItems(rawItems) };
   } catch (error) {
-    console.error("Error adding cart item:", error);
+    logApiEvent("error", "Error adding cart item.", error);
     return { ok: false, message: "Could not connect to cart service." };
   }
 }
 
-export async function removeCartItem(
-  token: string,
-  payload: { itemIndex: number }
-): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
+export async function removeCartItem(token: string, payload: { itemIndex: number }): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/cart/remove"), {
       method: "POST",
@@ -638,15 +727,12 @@ export async function removeCartItem(
 
     return { ok: true, items: normalizeCartItems(rawItems) };
   } catch (error) {
-    console.error("Error removing cart item:", error);
+    logApiEvent("error", "Error removing cart item.", error);
     return { ok: false, message: "Could not connect to cart service." };
   }
 }
 
-export async function updateCartItem(
-  token: string,
-  payload: { itemIndex: number; quantity: number }
-): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
+export async function updateCartItem(token: string, payload: { itemIndex: number; quantity: number }): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/cart/update"), {
       method: "POST",
@@ -672,20 +758,16 @@ export async function updateCartItem(
 
     return { ok: true, items: normalizeCartItems(rawItems) };
   } catch (error) {
-    console.error("Error updating cart item:", error);
+    logApiEvent("error", "Error updating cart item.", error);
     return { ok: false, message: "Could not connect to cart service." };
   }
 }
 
-export async function clearCartApi(
-  token: string
-): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
+export async function clearCartApi(token: string): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/cart/clear"), {
       method: "POST",
-      headers: {
-        ...buildAuthHeaders(token),
-      },
+      headers: { ...buildAuthHeaders(token) },
     });
 
     const body = (await response.json()) as RawCartResponse;
@@ -703,7 +785,7 @@ export async function clearCartApi(
 
     return { ok: true, items: normalizeCartItems(rawItems) };
   } catch (error) {
-    console.error("Error clearing cart:", error);
+    logApiEvent("error", "Error clearing cart.", error);
     return { ok: false, message: "Could not connect to cart service." };
   }
 }
@@ -721,10 +803,7 @@ export async function submitOrder(
 ): Promise<SubmitOrderResult> {
   try {
     if (!token) {
-      return {
-        ok: false,
-        message: "Please sign in to place an order.",
-      };
+      return { ok: false, message: "Please sign in to place an order." };
     }
 
     const response = await fetch(buildApiUrl("/api/orders"), {
@@ -747,26 +826,14 @@ export async function submitOrder(
         // Ignore JSON parse issues and keep default message.
       }
 
-      return {
-        ok: false,
-        message: errorMessage,
-      };
+      return { ok: false, message: errorMessage };
     }
 
     const body = (await response.json()) as { id?: string; orderId?: string };
-
-    return {
-      ok: true,
-      message: "Order placed successfully.",
-      orderId: body.orderId ?? body.id,
-    };
+    return { ok: true, message: "Order placed successfully.", orderId: body.orderId ?? body.id };
   } catch (error) {
-    console.error("Error placing order:", error);
-    return {
-      ok: false,
-      message:
-        "Could not reach the checkout service. Check your backend and try again.",
-    };
+    logApiEvent("error", "Error placing order.", error);
+    return { ok: false, message: "Could not reach the checkout service. Check your backend and try again." };
   }
 }
 
@@ -823,25 +890,22 @@ export type LoginPayload = {
 function normalizeAuthUser(input: RawAuthUser | undefined): AuthUser {
   const role = asString(input?.role, "");
   const isAdmin = input?.isAdmin === true;
-
   return {
     id: asString(input?._id ?? input?.id, ""),
     name: asString(input?.name, ""),
     email: asString(input?.email, ""),
-    role: role || (isAdmin ? "admin" : "user"),
+    role: isAdmin ? "admin" : role || undefined,
   };
 }
 
-function normalizeAuthPayload(input: RawAuthResponse): AuthPayload | null {
-  const userSource: RawAuthUser | undefined = input.user ?? {
-    _id: input._id,
-    id: input.id,
-    name: input.name,
-    email: input.email,
-  };
+function normalizeAuthPayload(payload: RawAuthResponse | undefined): AuthPayload | null {
+  if (!payload) {
+    return null;
+  }
 
+  const userSource = payload.user ?? payload;
   const user = normalizeAuthUser(userSource);
-  const token = asString(input.token, "");
+  const token = asString(payload.token, "");
 
   if (!user.id || !user.email || !token) {
     return null;
@@ -850,372 +914,131 @@ function normalizeAuthPayload(input: RawAuthResponse): AuthPayload | null {
   return { user, token };
 }
 
-export async function registerUser(
-  payload: RegisterPayload
-): Promise<{ ok: boolean; data?: AuthPayload; message?: string }> {
+function normalizeAuthSeedUser(payload: unknown): AuthSeedUser | null {
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const record = payload as { user?: RawAuthUser; token?: unknown; email?: unknown; password?: unknown };
+  const authPayload = normalizeAuthPayload({ user: record.user, token: record.token });
+
+  if (!authPayload) {
+    return null;
+  }
+
+  return {
+    ...authPayload,
+    email: asString(record.email, authPayload.user.email),
+    password: typeof record.password === "string" ? record.password : undefined,
+  };
+}
+
+export async function seedUsers(): Promise<AuthSeedResponse> {
+  try {
+    const response = await fetch(buildApiUrl("/api/auth/seed"), { method: "POST" });
+    const data = (await response.json()) as unknown;
+    const seedEntries: unknown[] = Array.isArray(data)
+      ? (data as unknown[])
+      : Array.isArray((data as { users?: unknown }).users)
+      ? ((data as { users?: unknown }).users as unknown[])
+      : [];
+
+    const users = seedEntries
+      .map(normalizeAuthSeedUser)
+      .filter((item): item is AuthSeedUser => Boolean(item));
+
+    return { users };
+  } catch (error) {
+    logApiEvent("error", "Error seeding users.", error);
+    return { users: [] };
+  }
+}
+
+export async function registerUser(payload: RegisterPayload): Promise<AuthPayload | null> {
   try {
     const response = await fetch(buildApiUrl("/api/auth/register"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const body = (await response.json()) as RawAuthResponse & { message?: string };
+    const data = (await response.json()) as RawAuthResponse;
     if (!response.ok) {
-      return {
-        ok: false,
-        message: body.message || "Registration failed.",
-      };
+      return null;
     }
 
-    const normalized = normalizeAuthPayload(body);
-    if (!normalized) {
-      return {
-        ok: false,
-        message: "Registration succeeded but response payload is invalid.",
-      };
-    }
-
-    return {
-      ok: true,
-      data: normalized,
-    };
+    return normalizeAuthPayload(data);
   } catch (error) {
-    console.error("Register error:", error);
-    return {
-      ok: false,
-      message: "Could not connect to auth service.",
-    };
+    logApiEvent("error", "Error registering user.", error);
+    return null;
   }
 }
 
-export async function loginUser(
-  payload: LoginPayload
-): Promise<{ ok: boolean; data?: AuthPayload; message?: string }> {
+export async function loginUser(payload: LoginPayload): Promise<AuthPayload | null> {
   try {
     const response = await fetch(buildApiUrl("/api/auth/login"), {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    const body = (await response.json()) as RawAuthResponse & { message?: string };
+    const data = (await response.json()) as RawAuthResponse;
     if (!response.ok) {
-      return {
-        ok: false,
-        message: body.message || "Login failed.",
-      };
+      return null;
     }
 
-    const normalized = normalizeAuthPayload(body);
-    if (!normalized) {
-      return {
-        ok: false,
-        message: "Login succeeded but response payload is invalid.",
-      };
-    }
-
-    return {
-      ok: true,
-      data: normalized,
-    };
+    return normalizeAuthPayload(data);
   } catch (error) {
-    console.error("Login error:", error);
-    return {
-      ok: false,
-      message: "Could not connect to auth service.",
-    };
+    logApiEvent("error", "Error logging in user.", error);
+    return null;
   }
 }
 
-export async function getCurrentUser(
-  token: string
-): Promise<{ ok: boolean; user?: AuthUser; message?: string }> {
-  try {
-    const response = await fetch(buildApiUrl("/api/auth/me"), {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-      cache: "no-store",
-    });
+type RawOrdersPayload = RawOrdersResponse;
 
-    const body = (await response.json()) as RawAuthUser & { user?: RawAuthUser; message?: string };
-    if (!response.ok) {
-      return {
-        ok: false,
-        message: body.message || "Could not load current user.",
-      };
-    }
-
-    const userSource = body.user ?? body;
-    const user = normalizeAuthUser(userSource);
-
-    if (!user.id || !user.email) {
-      return {
-        ok: false,
-        message: "Current user payload is invalid.",
-      };
-    }
-
-    return {
-      ok: true,
-      user,
-    };
-  } catch (error) {
-    console.error("Current user error:", error);
-    return {
-      ok: false,
-      message: "Could not connect to auth service.",
-    };
-  }
-}
-
-export async function seedAuthUsers(): Promise<{
-  ok: boolean;
-  users: AuthSeedUser[];
-  message?: string;
-}> {
-  try {
-    const response = await fetch(buildApiUrl("/api/auth/seed"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    const body = (await response.json()) as AuthSeedResponse & { message?: string; users?: AuthSeedUser[] };
-    if (!response.ok) {
-      return {
-        ok: false,
-        users: [],
-        message: body.message || `Failed to seed auth users (${response.status}).`,
-      };
-    }
-
-    return {
-      ok: true,
-      users: Array.isArray(body.users) ? body.users : [],
-    };
-  } catch (error) {
-    console.error("Error seeding auth users:", error);
-    return {
-      ok: false,
-      users: [],
-      message: "Could not connect to auth seed service.",
-    };
-  }
-}
-
-export async function getOrders(
-  token: string
-): Promise<{ ok: boolean; orders: ApiOrder[]; message?: string }> {
+export async function getOrders(token: string): Promise<{ ok: boolean; orders: ApiOrder[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/orders"), {
       cache: "no-store",
       headers: buildAuthHeaders(token),
     });
 
-    const body = (await response.json()) as RawOrdersResponse & { message?: string };
+    const data = (await response.json()) as RawOrdersPayload;
     if (!response.ok) {
-      return {
-        ok: false,
-        orders: [],
-        message: body.message || `Failed to fetch orders (${response.status}).`,
-      };
+      const message = Array.isArray(data) ? "Failed to fetch orders." : data.message || "Failed to fetch orders.";
+      return { ok: false, orders: [], message };
     }
 
-    const rawOrders = Array.isArray(body)
-      ? body
-      : Array.isArray((body as { orders?: RawOrder[] }).orders)
-      ? (body as { orders?: RawOrder[] }).orders || []
-      : Array.isArray((body as { data?: RawOrder[] }).data)
-      ? (body as { data?: RawOrder[] }).data || []
+    const orders = Array.isArray(data)
+      ? data
+      : Array.isArray(data.orders)
+      ? data.orders
+      : Array.isArray(data.data)
+      ? data.data
       : [];
 
-    return {
-      ok: true,
-      orders: rawOrders.map(normalizeOrder),
-    };
+    return { ok: true, orders: orders.map(normalizeOrder) };
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    logApiEvent("error", "Error fetching orders.", error);
     return { ok: false, orders: [], message: "Could not connect to orders service." };
   }
 }
 
-export async function getOrderById(
-  token: string,
-  orderId: string
-): Promise<{ ok: boolean; order?: ApiOrder; message?: string }> {
+export async function getOrderById(token: string, orderId: string): Promise<{ ok: boolean; order: ApiOrder | null; message?: string }> {
   try {
     const response = await fetch(buildApiUrl(`/api/orders/${orderId}`), {
       cache: "no-store",
       headers: buildAuthHeaders(token),
     });
 
-    const body = (await response.json()) as RawOrder & { message?: string };
+    const data = (await response.json()) as RawOrder;
     if (!response.ok) {
-      return {
-        ok: false,
-        message: body.message || `Failed to fetch order (${response.status}).`,
-      };
+      return { ok: false, order: null, message: asString((data as { message?: unknown }).message, "Failed to fetch order.") };
     }
 
-    const orderSource = (body.order ?? body) as RawOrder;
-    return { ok: true, order: normalizeOrder(orderSource) };
+    return { ok: true, order: normalizeOrder(data) };
   } catch (error) {
-    console.error("Error fetching order:", error);
-    return { ok: false, message: "Could not connect to orders service." };
-  }
-}
-
-export async function getAdminOrders(
-  token: string
-): Promise<{ ok: boolean; orders: ApiOrder[]; message?: string }> {
-  try {
-    const response = await fetch(buildApiUrl("/api/orders/admin/all"), {
-      cache: "no-store",
-      headers: buildAuthHeaders(token),
-    });
-
-    const body = (await response.json()) as RawOrdersResponse & { message?: string };
-    if (!response.ok) {
-      return {
-        ok: false,
-        orders: [],
-        message: body.message || `Failed to fetch admin orders (${response.status}).`,
-      };
-    }
-
-    const rawOrders = Array.isArray(body)
-      ? body
-      : Array.isArray((body as { orders?: RawOrder[] }).orders)
-      ? (body as { orders?: RawOrder[] }).orders || []
-      : Array.isArray((body as { data?: RawOrder[] }).data)
-      ? (body as { data?: RawOrder[] }).data || []
-      : [];
-
-    return {
-      ok: true,
-      orders: rawOrders.map(normalizeOrder),
-    };
-  } catch (error) {
-    console.error("Error fetching admin orders:", error);
-    return { ok: false, orders: [], message: "Could not connect to admin orders service." };
-  }
-}
-
-export async function updateOrderStatus(
-  token: string,
-  orderId: string,
-  status: ApiOrderStatus
-): Promise<{ ok: boolean; order?: ApiOrder; message?: string }> {
-  try {
-    const response = await fetch(buildApiUrl(`/api/orders/${orderId}/status`), {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeaders(token),
-      },
-      body: JSON.stringify({ status }),
-    });
-
-    const body = (await response.json()) as RawOrder & { message?: string };
-    if (!response.ok) {
-      return {
-        ok: false,
-        message: body.message || `Failed to update order status (${response.status}).`,
-      };
-    }
-
-    return { ok: true, order: normalizeOrder(body) };
-  } catch (error) {
-    console.error("Error updating order status:", error);
-    return { ok: false, message: "Could not connect to orders service." };
-  }
-}
-
-export async function seedStarterProducts(token: string): Promise<Product[]> {
-  try {
-    const response = await fetch(buildApiUrl("/api/products/seed"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeaders(token),
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to seed products: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as RawProduct[] | RawProduct;
-    return Array.isArray(data) ? data.map(normalizeProduct) : [];
-  } catch (error) {
-    console.error("Error seeding products:", error);
-    return [];
-  }
-}
-
-export async function createProductAdmin(token: string, product: Omit<Product, "id">): Promise<Product | null> {
-  try {
-    const response = await fetch(buildApiUrl("/api/products"), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeaders(token),
-      },
-      body: JSON.stringify(product),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to create product: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as RawProduct;
-    return normalizeProduct(data);
-  } catch (error) {
-    console.error("Error creating product:", error);
-    return null;
-  }
-}
-
-export async function updateProductAdmin(token: string, id: string, product: Partial<Omit<Product, "id">>): Promise<Product | null> {
-  try {
-    const response = await fetch(buildApiUrl(`/api/products/${id}`), {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        ...buildAuthHeaders(token),
-      },
-      body: JSON.stringify(product),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to update product: ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as RawProduct;
-    return normalizeProduct(data);
-  } catch (error) {
-    console.error("Error updating product:", error);
-    return null;
-  }
-}
-
-export async function deleteProductAdmin(token: string, id: string): Promise<boolean> {
-  try {
-    const response = await fetch(buildApiUrl(`/api/products/${id}`), {
-      method: "DELETE",
-      headers: buildAuthHeaders(token),
-    });
-
-    return response.ok;
-  } catch (error) {
-    console.error("Error deleting product:", error);
-    return false;
+    logApiEvent("error", "Error fetching order by id.", error);
+    return { ok: false, order: null, message: "Could not connect to orders service." };
   }
 }
