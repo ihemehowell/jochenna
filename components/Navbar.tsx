@@ -423,13 +423,22 @@ export default function Navbar() {
               onMouseEnter={() => user && setAccountMenuOpen(true)}
               onMouseLeave={() => setAccountMenuOpen(false)}
             >
-              <button
-                type="button"
-                onClick={() => (user ? setAccountMenuOpen(!accountMenuOpen) : null)}
-                className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
-              >
-                {user ? user.name.split(" ")[0] || "Account" : "Login"}
-              </button>
+              {user ? (
+                <button
+                  type="button"
+                  onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
+                >
+                  {user.name.split(" ")[0] || "Account"}
+                </button>
+              ) : (
+                <Link
+                  href="/auth"
+                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
+                >
+                  Login
+                </Link>
+              )}
 
               <AnimatePresence>
                 {user && accountMenuOpen && (
@@ -471,15 +480,6 @@ export default function Navbar() {
                   </motion.div>
                 )}
               </AnimatePresence>
-
-              {!user && (
-                <Link
-                  href="/auth"
-                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
-                >
-                  Login
-                </Link>
-              )}
             </div>
 
             {/* Wishlist */}
