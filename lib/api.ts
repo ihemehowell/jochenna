@@ -5,20 +5,24 @@ import type {
   ProductCondition,
 } from "./types";
 
-const DEFAULT_API_BASE_URL = "http://localhost:5000";
+const DEFAULT_DEV_API_BASE_URL = "http://localhost:5000";
 let hasWarnedAboutEnv = false;
 
 function resolveApiBaseUrl(): string {
   const configuredBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL?.trim();
+  const isProduction = process.env.NODE_ENV === "production";
 
   if (!configuredBaseUrl) {
     if (!hasWarnedAboutEnv) {
       hasWarnedAboutEnv = true;
       console.warn(
-        "NEXT_PUBLIC_BACKEND_URL is not set. Falling back to http://localhost:5000."
+        isProduction
+          ? "NEXT_PUBLIC_BACKEND_URL is not set in production. Falling back to same-origin /api."
+          : "NEXT_PUBLIC_BACKEND_URL is not set. Falling back to http://localhost:5000."
       );
     }
-    return DEFAULT_API_BASE_URL;
+
+    return isProduction ? "" : DEFAULT_DEV_API_BASE_URL;
   }
 
   try {
@@ -27,17 +31,20 @@ function resolveApiBaseUrl(): string {
     if (!hasWarnedAboutEnv) {
       hasWarnedAboutEnv = true;
       console.warn(
-        `Invalid NEXT_PUBLIC_BACKEND_URL (${configuredBaseUrl}). Falling back to http://localhost:5000.`
+        isProduction
+          ? `Invalid NEXT_PUBLIC_BACKEND_URL (${configuredBaseUrl}) in production. Falling back to same-origin /api.`
+          : `Invalid NEXT_PUBLIC_BACKEND_URL (${configuredBaseUrl}). Falling back to http://localhost:5000.`
       );
     }
-    return DEFAULT_API_BASE_URL;
+
+    return isProduction ? "" : DEFAULT_DEV_API_BASE_URL;
   }
 }
 
 function buildApiUrl(pathname: string): string {
   const baseUrl = resolveApiBaseUrl();
   const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
-  return `${baseUrl}${normalizedPath}`;
+  return baseUrl ? `${baseUrl}${normalizedPath}` : normalizedPath;
 }
 
 function buildAuthHeaders(token?: string): HeadersInit {
