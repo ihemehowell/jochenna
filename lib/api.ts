@@ -61,6 +61,7 @@ type RawProduct = {
   name?: unknown;
   price?: unknown;
   category?: unknown;
+  subcategory?: unknown;
   stock?: unknown;
   sold?: unknown;
   sizes?: unknown;
@@ -167,6 +168,7 @@ function normalizeProduct(product: RawProduct): Product {
     name: asString(product.name, "Untitled Product"),
     price: asNumber(product.price, 0),
     category: asCategory(product.category),
+    subcategory: asString(product.subcategory) || undefined,
     stock: asNumber(product.stock, 0),
     sold: asNumber(product.sold, 0),
     sizes: asStringArray(product.sizes),

@@ -20,6 +20,7 @@ export type Product = {
   price: number;
   images: string[];
   category: ProductCategory;
+  subcategory?: string;
   ageGroup: AgeGroup[];
   gender?: "boys" | "girls" | "unisex";
   condition: ProductCondition;
