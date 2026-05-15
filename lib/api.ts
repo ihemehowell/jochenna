@@ -4,6 +4,7 @@ import type {
   ProductCategory,
   ProductCondition,
 } from "./types";
+import { FALLBACK_PRODUCTS } from "@/data/fallbackProducts";
 
 const DEFAULT_DEV_API_BASE_URL = "http://localhost:5000";
 let hasWarnedAboutEnv = false;
@@ -303,6 +304,58 @@ function createQueryString(params: Record<string, string | number | undefined>):
   return queryString ? `?${queryString}` : "";
 }
 
+function matchesFilter(product: Product, params: FilterProductsParams): boolean {
+  const search = params.search?.trim().toLowerCase();
+
+  if (params.category && product.category.toLowerCase() !== params.category.toLowerCase()) {
+    return false;
+  }
+
+  if (params.size && !(product.sizes ?? []).some((size) => size.toLowerCase() === params.size?.toLowerCase())) {
+    return false;
+  }
+
+  if (params.ageGroup && !(product.ageGroup ?? []).includes(params.ageGroup as AgeGroup)) {
+    return false;
+  }
+
+  if (params.gender && product.gender !== params.gender) {
+    return false;
+  }
+
+  if (params.condition && product.condition !== params.condition) {
+    return false;
+  }
+
+  if (!search) {
+    return true;
+  }
+
+  const haystack = [product.name, product.category, product.subcategory ?? ""]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(search);
+}
+
+function sortProducts(products: Product[], sort?: FilterProductsParams["sort"]): Product[] {
+  const sorted = [...products];
+
+  if (sort === "price-asc") {
+    return sorted.sort((left, right) => left.price - right.price);
+  }
+
+  if (sort === "price-desc") {
+    return sorted.sort((left, right) => right.price - left.price);
+  }
+
+  if (sort === "best-selling") {
+    return sorted.sort((left, right) => (right.sold ?? 0) - (left.sold ?? 0));
+  }
+
+  return sorted;
+}
+
 // Fetch all products
 export async function getProducts(): Promise<Product[]> {
   try {
@@ -318,7 +371,7 @@ export async function getProducts(): Promise<Product[]> {
     return data.map(normalizeProduct);
   } catch (error) {
     console.error("Error fetching products:", error);
-    return [];
+    return FALLBACK_PRODUCTS;
   }
 }
 
@@ -357,7 +410,9 @@ export async function getBestSellers(limit?: number): Promise<Product[]> {
     return Array.isArray(data) ? data.map(normalizeProduct) : [];
   } catch (error) {
     console.error("Error fetching best sellers:", error);
-    return [];
+    return [...FALLBACK_PRODUCTS]
+      .sort((left, right) => (right.sold ?? 0) - (left.sold ?? 0))
+      .slice(0, limit ?? 4);
   }
 }
 
@@ -401,12 +456,23 @@ export async function filterProducts(
     };
   } catch (error) {
     console.error("Error filtering products:", error);
+
+    const fallbackProducts = sortProducts(
+      FALLBACK_PRODUCTS.filter((product) => matchesFilter(product, params)),
+      params.sort
+    );
+
+    const total = fallbackProducts.length;
+    const page = params.page ?? 1;
+    const limit = fallbackLimit;
+    const startIndex = (page - 1) * limit;
+
     return {
-      products: [],
-      page: params.page ?? 1,
-      limit: fallbackLimit,
-      total: 0,
-      totalPages: 0,
+      products: fallbackProducts.slice(startIndex, startIndex + limit),
+      page,
+      limit,
+      total,
+      totalPages: Math.max(Math.ceil(total / limit), 1),
     };
   }
 }
