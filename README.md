@@ -29,6 +29,7 @@ cp .env.example .env.local
 
 ```bash
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+BACKEND_URL=http://localhost:5000
 ```
 
 4. Run the app:
@@ -75,7 +76,8 @@ Frontend expects a backend at `NEXT_PUBLIC_BACKEND_URL` with these endpoints:
 Notes:
 
 - Product IDs are normalized to strings in the frontend.
-- If `NEXT_PUBLIC_BACKEND_URL` is missing or invalid, app falls back to `http://localhost:5000` and logs a warning.
+- In production, the app can also proxy `/api/*` through the Next.js route handler, which reads `BACKEND_URL` or `NEXT_PUBLIC_BACKEND_URL` on the server.
+- If the backend env is missing in production, API requests will fail instead of silently showing an empty catalog.
 
 ## Project Structure
 
@@ -103,6 +105,6 @@ npm run check
 
 For production deployment, ensure:
 
-- `NEXT_PUBLIC_BACKEND_URL` points to your live backend.
+- `BACKEND_URL` points to your live backend, or `NEXT_PUBLIC_BACKEND_URL` is set if you want the browser to call it directly.
 - Backend supports the API routes listed above.
 - `npm run check` passes in CI.
