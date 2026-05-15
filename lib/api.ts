@@ -411,7 +411,7 @@ export async function getProducts(): Promise<Product[]> {
     logApiEvent("info", "Fetching products.", url);
     const result = await fetchJson<RawProduct[]>(url, { cache: "no-store" });
 
-    if (!result.ok || !Array.isArray(result.data)) {
+    if (!result.ok || !Array.isArray(result.data) || result.data.length === 0) {
       logApiEvent("error", "Product fetch failed.", {
         url,
         status: result.status,
@@ -435,21 +435,21 @@ export async function getProductCategories(): Promise<string[]> {
     logApiEvent("info", "Fetching product categories.", url);
     const result = await fetchJson<unknown>(url, { cache: "no-store" });
 
-    if (!result.ok || !Array.isArray(result.data)) {
+    if (!result.ok || !Array.isArray(result.data) || result.data.length === 0) {
       logApiEvent("error", "Category fetch failed.", {
         url,
         status: result.status,
         statusText: result.statusText,
         body: result.text,
       });
-      return [];
+      return [...new Set(FALLBACK_PRODUCTS.map((product) => product.category))];
     }
 
     logApiEvent("info", "Fetched product categories successfully.", { url, count: result.data.length });
     return result.data.filter((item): item is string => typeof item === "string");
   } catch (error) {
     logApiEvent("error", "Error fetching product categories.", error);
-    return [];
+    return [...new Set(FALLBACK_PRODUCTS.map((product) => product.category))];
   }
 }
 
@@ -460,7 +460,7 @@ export async function getBestSellers(limit?: number): Promise<Product[]> {
     logApiEvent("info", "Fetching best sellers.", url);
     const result = await fetchJson<RawProduct[]>(url, { cache: "no-store" });
 
-    if (!result.ok || !Array.isArray(result.data)) {
+    if (!result.ok || !Array.isArray(result.data) || result.data.length === 0) {
       logApiEvent("error", "Best sellers fetch failed.", {
         url,
         status: result.status,
@@ -500,7 +500,7 @@ export async function filterProducts(params: FilterProductsParams = {}): Promise
     logApiEvent("info", "Filtering products.", { url, params });
     const result = await fetchJson<RawPaginatedProducts>(url, { cache: "no-store" });
 
-    if (!result.ok || !result.data || !Array.isArray(result.data.products)) {
+    if (!result.ok || !result.data || !Array.isArray(result.data.products) || result.data.products.length === 0) {
       logApiEvent("error", "Product filtering failed.", {
         url,
         status: result.status,
