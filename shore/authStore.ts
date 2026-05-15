@@ -40,17 +40,17 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
         const result = await loginUser({ email, password });
 
-        if (!result.ok || !result.data) {
+        if (!result) {
           set({ loading: false });
           return {
             ok: false,
-            message: result.message || "Login failed.",
+            message: "Login failed.",
           };
         }
 
         set({
-          user: result.data.user,
-          token: result.data.token,
+          user: result.user,
+          token: result.token,
           loading: false,
           initialized: true,
         });
@@ -65,17 +65,17 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true });
         const result = await registerUser({ name, email, password });
 
-        if (!result.ok || !result.data) {
+        if (!result) {
           set({ loading: false });
           return {
             ok: false,
-            message: result.message || "Registration failed.",
+            message: "Registration failed.",
           };
         }
 
         set({
-          user: result.data.user,
-          token: result.data.token,
+          user: result.user,
+          token: result.token,
           loading: false,
           initialized: true,
         });

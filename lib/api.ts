@@ -554,7 +554,7 @@ export async function getProductById(id: string): Promise<Product | null> {
   }
 }
 
-export async function createProductAdmin(product: Omit<Product, "id">, token?: string): Promise<Product | null> {
+export async function createProductAdmin(token: string | undefined, product: Omit<Product, "id">): Promise<Product | null> {
   try {
     const response = await fetch(buildApiUrl("/api/products"), {
       method: "POST",
@@ -577,7 +577,7 @@ export async function createProductAdmin(product: Omit<Product, "id">, token?: s
   }
 }
 
-export async function updateProductAdmin(productId: string, product: Partial<Omit<Product, "id">>, token?: string): Promise<Product | null> {
+export async function updateProductAdmin(token: string | undefined, productId: string, product: Partial<Omit<Product, "id">>): Promise<Product | null> {
   try {
     const response = await fetch(buildApiUrl(`/api/products/${productId}`), {
       method: "PUT",
@@ -862,6 +862,17 @@ type RawAuthResponse = {
   email?: unknown;
 };
 
+type RawCurrentUserResponse = {
+  user?: RawAuthUser;
+  _id?: unknown;
+  id?: unknown;
+  name?: unknown;
+  email?: unknown;
+  role?: unknown;
+  isAdmin?: unknown;
+  message?: unknown;
+};
+
 export type AuthPayload = {
   user: AuthUser;
   token: string;
@@ -912,6 +923,14 @@ function normalizeAuthPayload(payload: RawAuthResponse | undefined): AuthPayload
   }
 
   return { user, token };
+}
+
+function normalizeCurrentUser(payload: RawCurrentUserResponse | undefined): AuthUser | null {
+  if (!payload) {
+    return null;
+  }
+
+  return normalizeAuthUser(payload.user ?? payload);
 }
 
 function normalizeAuthSeedUser(payload: unknown): AuthSeedUser | null {
@@ -994,6 +1013,36 @@ export async function loginUser(payload: LoginPayload): Promise<AuthPayload | nu
   }
 }
 
+export async function getCurrentUser(token: string): Promise<{ ok: boolean; user: AuthUser | null; message?: string }> {
+  try {
+    const response = await fetch(buildApiUrl("/api/auth/me"), {
+      cache: "no-store",
+      headers: buildAuthHeaders(token),
+    });
+
+    const data = (await response.json()) as RawCurrentUserResponse;
+
+    if (!response.ok) {
+      logApiEvent("warn", "Failed to fetch current user.", {
+        status: response.status,
+        statusText: response.statusText,
+        message: data.message,
+      });
+      return { ok: false, user: null, message: asString(data.message, "Failed to fetch current user.") };
+    }
+
+    const user = normalizeCurrentUser(data);
+    if (!user?.id || !user.email) {
+      return { ok: false, user: null, message: "Invalid user payload." };
+    }
+
+    return { ok: true, user };
+  } catch (error) {
+    logApiEvent("error", "Error fetching current user.", error);
+    return { ok: false, user: null, message: "Could not connect to auth service." };
+  }
+}
+
 type RawOrdersPayload = RawOrdersResponse;
 
 export async function getOrders(token: string): Promise<{ ok: boolean; orders: ApiOrder[]; message?: string }> {
@@ -1039,6 +1088,65 @@ export async function getOrderById(token: string, orderId: string): Promise<{ ok
     return { ok: true, order: normalizeOrder(data) };
   } catch (error) {
     logApiEvent("error", "Error fetching order by id.", error);
+    return { ok: false, order: null, message: "Could not connect to orders service." };
+  }
+}
+
+export async function getAdminOrders(token: string): Promise<{ ok: boolean; orders: ApiOrder[]; message?: string }> {
+  try {
+    const response = await fetch(buildApiUrl("/api/orders/admin/all"), {
+      cache: "no-store",
+      headers: buildAuthHeaders(token),
+    });
+
+    const data = (await response.json()) as RawOrdersPayload;
+    if (!response.ok) {
+      const message = Array.isArray(data) ? "Failed to fetch admin orders." : data.message || "Failed to fetch admin orders.";
+      return { ok: false, orders: [], message };
+    }
+
+    const orders = Array.isArray(data)
+      ? data
+      : Array.isArray(data.orders)
+      ? data.orders
+      : Array.isArray(data.data)
+      ? data.data
+      : [];
+
+    return { ok: true, orders: orders.map(normalizeOrder) };
+  } catch (error) {
+    logApiEvent("error", "Error fetching admin orders.", error);
+    return { ok: false, orders: [], message: "Could not connect to orders service." };
+  }
+}
+
+export async function updateOrderStatus(
+  token: string,
+  orderId: string,
+  status: ApiOrderStatus
+): Promise<{ ok: boolean; order: ApiOrder | null; message?: string }> {
+  try {
+    const response = await fetch(buildApiUrl(`/api/orders/${orderId}/status`), {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    const data = (await response.json()) as RawOrder | { message?: string };
+    if (!response.ok) {
+      return {
+        ok: false,
+        order: null,
+        message: asString((data as { message?: unknown }).message, "Failed to update order status."),
+      };
+    }
+
+    return { ok: true, order: normalizeOrder(data as RawOrder) };
+  } catch (error) {
+    logApiEvent("error", "Error updating order status.", error);
     return { ok: false, order: null, message: "Could not connect to orders service." };
   }
 }
