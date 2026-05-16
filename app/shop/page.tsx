@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Filter } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -29,7 +29,6 @@ export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [loading, setLoading] = useState(true);
-  const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [limit] = useState(12);
@@ -42,12 +41,17 @@ export default function ShopPage() {
     gender: "all",
     condition: "all",
   });
-  const [sortBy, setSortBy] = useState<"featured" | "price-asc" | "price-desc" | "best-selling">("featured");
+  const [sortBy, setSortBy] = useState<
+    "featured" | "price-asc" | "price-desc" | "best-selling"
+  >("featured");
+
   const categoryParam = searchParams.get("category")?.trim() || "";
   const subcategoryParam = searchParams.get("subcategory")?.trim() || "";
   const activeCategory = categoryParam || filters.category;
   const activeSubcategory = subcategoryParam;
-  const activeCategoryGroup = findShopCategoryGroup(activeCategory === "all" ? "" : activeCategory);
+  const activeCategoryGroup = findShopCategoryGroup(
+    activeCategory === "all" ? "" : activeCategory
+  );
 
   const formatCategory = (category: string) =>
     category
@@ -62,7 +66,6 @@ export default function ShopPage() {
         setCategories(data.map((item) => ({ key: item, label: item })));
       }
     };
-
     fetchCategories();
   }, []);
 
@@ -71,7 +74,9 @@ export default function ShopPage() {
       setLoading(true);
 
       const baseSearch = search.trim();
-      const mergedSearch = [baseSearch, activeSubcategory].filter(Boolean).join(" ");
+      const mergedSearch = [baseSearch, activeSubcategory]
+        .filter(Boolean)
+        .join(" ");
 
       const params: FilterProductsParams = {
         search: mergedSearch || undefined,
@@ -81,7 +86,8 @@ export default function ShopPage() {
         limit,
         ageGroup: filters.ageGroup === "all" ? undefined : filters.ageGroup,
         gender: filters.gender === "all" ? undefined : filters.gender,
-        condition: filters.condition === "all" ? undefined : filters.condition,
+        condition:
+          filters.condition === "all" ? undefined : filters.condition,
       };
 
       const result = await filterProducts(params);
@@ -92,7 +98,15 @@ export default function ShopPage() {
     };
 
     fetchFilteredProducts();
-  }, [activeCategory, activeSubcategory, filters, limit, page, search, sortBy]);
+  }, [
+    activeCategory,
+    activeSubcategory,
+    filters,
+    limit,
+    page,
+    search,
+    sortBy,
+  ]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -105,28 +119,22 @@ export default function ShopPage() {
 
     if (categoryParam || subcategoryParam) {
       const nextCategory = next.category;
-
       if (nextCategory === "all") {
         router.push("/shop");
         return;
       }
-
       router.push(`/shop?category=${encodeURIComponent(nextCategory)}`);
     }
   };
 
-  const handleSortChange = (value: "featured" | "price-asc" | "price-desc" | "best-selling") => {
+  const handleSortChange = (
+    value: "featured" | "price-asc" | "price-desc" | "best-selling"
+  ) => {
     setSortBy(value);
     setPage(1);
   };
 
-  const ageGroups: AgeGroup[] = [
-    "0-6m",
-    "6-12m",
-    "1-2y",
-    "3-5y",
-    "6-10y",
-  ];
+  const ageGroups: AgeGroup[] = ["0-6m", "6-12m", "1-2y", "3-5y", "6-10y"];
 
   return (
     <main className="px-4 md:px-8 py-6 md:py-10 bg-gray-50 min-h-screen">
@@ -142,7 +150,7 @@ export default function ShopPage() {
           </div>
         </div>
 
-        {/* Sort and Active Filters - Mobile optimized */}
+        {/* Sort bar + Active Filter Chips */}
         <div className="mb-4 md:mb-6 space-y-3">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm md:text-base text-gray-600">
@@ -156,7 +164,11 @@ export default function ShopPage() {
                   value={sortBy}
                   onChange={(e) =>
                     handleSortChange(
-                      e.target.value as "featured" | "price-asc" | "price-desc" | "best-selling"
+                      e.target.value as
+                        | "featured"
+                        | "price-asc"
+                        | "price-desc"
+                        | "best-selling"
                     )
                   }
                   className="w-full appearance-none rounded-lg md:rounded-full border border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3 pr-8 md:pr-10 text-xs md:text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
@@ -174,8 +186,12 @@ export default function ShopPage() {
             </label>
           </div>
 
-          {/* Active Filters Chips */}
-          {(activeCategory !== "all" || activeSubcategory || filters.ageGroup !== "all" || filters.condition !== "all") && (
+          {/* Active Filter Chips */}
+          {(activeCategory !== "all" ||
+            activeSubcategory ||
+            filters.ageGroup !== "all" ||
+            filters.gender !== "all" ||
+            filters.condition !== "all") && (
             <div className="flex flex-wrap gap-2">
               {activeCategory !== "all" && (
                 <button
@@ -195,7 +211,9 @@ export default function ShopPage() {
                   className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-200"
                   onClick={() => {
                     if (activeCategory !== "all") {
-                      router.push(`/shop?category=${encodeURIComponent(activeCategory)}`);
+                      router.push(
+                        `/shop?category=${encodeURIComponent(activeCategory)}`
+                      );
                       return;
                     }
                     router.push("/shop");
@@ -208,16 +226,31 @@ export default function ShopPage() {
               {filters.ageGroup !== "all" && (
                 <button
                   className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 transition hover:bg-blue-200"
-                  onClick={() => setFilters((s) => ({ ...s, ageGroup: "all" }))}
+                  onClick={() =>
+                    setFilters((s) => ({ ...s, ageGroup: "all" }))
+                  }
                 >
                   ✕ {filters.ageGroup}
+                </button>
+              )}
+
+              {filters.gender !== "all" && (
+                <button
+                  className="rounded-full bg-fuchsia-100 px-3 py-1 text-xs text-fuchsia-700 transition hover:bg-fuchsia-200"
+                  onClick={() =>
+                    setFilters((s) => ({ ...s, gender: "all" }))
+                  }
+                >
+                  ✕ {filters.gender}
                 </button>
               )}
 
               {filters.condition !== "all" && (
                 <button
                   className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700 transition hover:bg-emerald-200"
-                  onClick={() => setFilters((s) => ({ ...s, condition: "all" }))}
+                  onClick={() =>
+                    setFilters((s) => ({ ...s, condition: "all" }))
+                  }
                 >
                   ✕ {filters.condition}
                 </button>
@@ -227,7 +260,7 @@ export default function ShopPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
-          {/* Desktop Filters - Always visible on lg screens */}
+          {/* Desktop Filters */}
           <div className="hidden lg:block">
             <ShopFilters
               search={search}
@@ -239,7 +272,7 @@ export default function ShopPage() {
             />
           </div>
 
-          {/* Mobile Filters - Floating button, handled inside ShopFilters component */}
+          {/* Mobile Filters */}
           <div className="lg:hidden">
             <ShopFilters
               search={search}
@@ -251,25 +284,16 @@ export default function ShopPage() {
             />
           </div>
 
-          {/* Products */}
+          {/* Products Column */}
           <section className="space-y-6 md:space-y-8">
-
-                  {filters.gender !== "all" && (
-                    <button
-                      className="rounded-full bg-fuchsia-100 px-3 py-1 text-xs text-fuchsia-700 transition hover:bg-fuchsia-200"
-                      onClick={() => setFilters((s) => ({ ...s, gender: "all" }))}
-                    >
-                      {filters.gender}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {activeCategoryGroup && activeCategoryGroup.subcategories.length > 0 && (
+            {/* Subcategory Pills */}
+            {activeCategoryGroup &&
+              activeCategoryGroup.subcategories.length > 0 && (
                 <div className="flex flex-wrap items-center gap-2">
                   {activeCategoryGroup.subcategories.map((subcategory) => {
                     const isActiveSubcategory =
-                      subcategory.toLowerCase() === activeSubcategory.toLowerCase();
+                      subcategory.toLowerCase() ===
+                      activeSubcategory.toLowerCase();
 
                     return (
                       <button
@@ -277,7 +301,9 @@ export default function ShopPage() {
                         type="button"
                         onClick={() =>
                           router.push(
-                            `/shop?category=${encodeURIComponent(activeCategory)}&subcategory=${encodeURIComponent(subcategory)}`
+                            `/shop?category=${encodeURIComponent(
+                              activeCategory
+                            )}&subcategory=${encodeURIComponent(subcategory)}`
                           )
                         }
                         className={`rounded-full px-3 py-1 text-xs transition ${
@@ -293,36 +319,11 @@ export default function ShopPage() {
                 </div>
               )}
 
-                  
-              <label className="flex items-center gap-3 text-sm text-gray-500">
-                <span className="whitespace-nowrap font-medium text-gray-700">Sort by</span>
-                <span className="relative inline-flex min-w-55 items-center">
-                  <select
-                    value={sortBy}
-                    onChange={(e) =>
-                      handleSortChange(
-                        e.target.value as "featured" | "price-asc" | "price-desc" | "best-selling"
-                      )
-                    }
-                    className="w-full appearance-none rounded-full border border-gray-200 bg-white px-4 py-3 pr-10 text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
-                  >
-                    <option value="featured">Featured</option>
-                    <option value="best-selling">Best Selling</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="pointer-events-none absolute right-4 text-gray-500"
-                  />
-                </span>
-              </label>
-            </div>
-
+            {/* Product Grid / States */}
             {loading ? (
               <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
                 <div className="text-center">
-                  <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+                  <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4" />
                   <p className="text-gray-500">Loading products...</p>
                 </div>
               </div>
@@ -330,7 +331,9 @@ export default function ShopPage() {
               <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
                 <div className="text-center">
                   <p className="text-gray-500 mb-2">No products found.</p>
-                  <p className="text-sm text-gray-400">Try adjusting your filters</p>
+                  <p className="text-sm text-gray-400">
+                    Try adjusting your filters
+                  </p>
                 </div>
               </div>
             ) : (
@@ -353,7 +356,9 @@ export default function ShopPage() {
                     <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                        onClick={() =>
+                          setPage((prev) => Math.max(1, prev - 1))
+                        }
                         disabled={page <= 1}
                         className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
@@ -362,7 +367,9 @@ export default function ShopPage() {
 
                       <button
                         type="button"
-                        onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                        onClick={() =>
+                          setPage((prev) => Math.min(totalPages, prev + 1))
+                        }
                         disabled={page >= totalPages}
                         className="rounded bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
                       >

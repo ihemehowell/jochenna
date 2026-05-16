@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Filter, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { Variants } from "framer-motion";
 import type { AgeGroup, Product } from "@/lib/types";
 
 export type ShopFiltersState = {
@@ -79,13 +80,13 @@ export default function ShopFilters({
     setMobileFiltersOpen(false);
   };
 
-  const overlayVariants = {
+  const overlayVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1 },
     exit: { opacity: 0 },
   };
 
-  const drawerVariants = {
+  const drawerVariants: Variants = {
     hidden: { x: "-100%", opacity: 0 },
     visible: {
       x: 0,

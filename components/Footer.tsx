@@ -21,7 +21,7 @@ export default function Footer() {
     {
       title: "Account",
       links: [
-        { label: "Sign In", href: "/auth" },
+        // { label: "Sign In", href: "/auth" },
         { label: "My Orders", href: "/orders" },
         { label: "Wishlist", href: "/wishlist" },
         { label: "Account Settings", href: "/auth" },
@@ -30,8 +30,8 @@ export default function Footer() {
     {
       title: "Company",
       links: [
-        { label: "About Us", href: "#" },
-        { label: "Blog", href: "#" },
+        // { label: "About Us", href: "#" },
+        // { label: "Blog", href: "#" },
         { label: "Contact", href: "#contact" },
         { label: "Sustainability", href: "#" },
       ],
@@ -112,7 +112,7 @@ export default function Footer() {
                 Jochenna
               </Link>
               <p className="mt-4 text-sm text-gray-400">
-                Sustainable children's thrift marketplace for parents and caregivers.
+                Sustainable children&apos;s thrift marketplace for parents and caregivers.
               </p>
               <div className="mt-6 flex gap-3">
                 <motion.a
@@ -161,7 +161,7 @@ export default function Footer() {
                 <h4 className="font-semibold text-white">{section.title}</h4>
                 <ul className="mt-4 space-y-3">
                   {section.links.map((link) => (
-                    <li key={link.href}>
+                    <li key={`${link.href}-${link.label}`}>
                       <Link
                         href={link.href}
                         className="text-sm text-gray-400 transition hover:text-white"

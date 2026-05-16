@@ -16,11 +16,15 @@ export default function ProductGallery({
   productName: string;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [brokenImages, setBrokenImages] = useState<Record<number, boolean>>({});
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const galleryRef = useRef<HTMLDivElement>(null);
 
-  const activeImage = images[activeIndex] || FALLBACK_IMAGE;
+  const galleryImages = images.length > 0 ? images : [FALLBACK_IMAGE];
+  const activeImage = brokenImages[activeIndex]
+    ? FALLBACK_IMAGE
+    : galleryImages[activeIndex] || FALLBACK_IMAGE;
 
   // Handle swipe
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -38,7 +42,7 @@ export default function ProductGallery({
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
 
-    if (isLeftSwipe && activeIndex < images.length - 1) {
+    if (isLeftSwipe && activeIndex < galleryImages.length - 1) {
       setActiveIndex(activeIndex + 1);
     } else if (isRightSwipe && activeIndex > 0) {
       setActiveIndex(activeIndex - 1);
@@ -50,7 +54,7 @@ export default function ProductGallery({
   };
 
   const handleNext = () => {
-    setActiveIndex(Math.min(images.length - 1, activeIndex + 1));
+    setActiveIndex(Math.min(galleryImages.length - 1, activeIndex + 1));
   };
 
   // Keyboard navigation
@@ -62,7 +66,13 @@ export default function ProductGallery({
 
     galleryRef.current?.addEventListener("keydown", handleKeyDown);
     return () => galleryRef.current?.removeEventListener("keydown", handleKeyDown);
-  }, [activeIndex, images.length]);
+  }, [activeIndex, galleryImages.length]);
+
+  useEffect(() => {
+    if (activeIndex >= galleryImages.length) {
+      setActiveIndex(Math.max(0, galleryImages.length - 1));
+    }
+  }, [activeIndex, galleryImages.length]);
 
   const thumbnailVariants = {
     hidden: { opacity: 0, scale: 0.8 },
@@ -81,7 +91,7 @@ export default function ProductGallery({
       
       {/* Thumbnails */}
       <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-x-visible">
-        {images.map((image: string, index: number) => (
+        {galleryImages.map((image: string, index: number) => (
           <motion.button
             key={index}
             onClick={() => setActiveIndex(index)}
@@ -100,11 +110,15 @@ export default function ProductGallery({
             aria-label={`View image ${index + 1}`}
           >
             <Image
-              src={image}
+              src={brokenImages[index] ? FALLBACK_IMAGE : image}
               alt={`${productName} - Image ${index + 1}`}
               fill
               className="object-cover"
-              onError={() => setActiveImage(FALLBACK_IMAGE)}
+              onError={() =>
+                setBrokenImages((current) =>
+                  current[index] ? current : { ...current, [index]: true }
+                )
+              }
               sizes="80px"
             />
           </motion.button>
@@ -140,7 +154,7 @@ export default function ProductGallery({
         </div>
 
         {/* Navigation Arrows - Mobile */}
-        {images.length > 1 && (
+        {galleryImages.length > 1 && (
           <>
             <motion.button
               onClick={handlePrevious}
@@ -155,7 +169,7 @@ export default function ProductGallery({
 
             <motion.button
               onClick={handleNext}
-              disabled={activeIndex === images.length - 1}
+              disabled={activeIndex === galleryImages.length - 1}
               className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-2 backdrop-blur transition hover:bg-white disabled:opacity-30 md:right-4"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
@@ -166,7 +180,7 @@ export default function ProductGallery({
 
             {/* Image Counter */}
             <div className="absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-xs font-medium text-white backdrop-blur">
-              {activeIndex + 1} / {images.length}
+              {activeIndex + 1} / {galleryImages.length}
             </div>
           </>
         )}
