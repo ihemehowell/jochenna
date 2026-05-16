@@ -252,10 +252,7 @@ export default function ShopPage() {
           </div>
 
           {/* Products */}
-          <section className="space-y-6 md:space-y-8"
-                        : "Used"}
-                    </button>
-                  )}
+          <section className="space-y-6 md:space-y-8">
 
                   {filters.gender !== "all" && (
                     <button
