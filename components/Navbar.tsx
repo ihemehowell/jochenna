@@ -354,7 +354,7 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-3 w-[560px] overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl"
+                    className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-3 w-screen max-w-md overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl sm:w-140"
                   >
                     {/* All goods link */}
                     <Link
@@ -366,7 +366,7 @@ export default function Navbar() {
                     </Link>
 
                     {/* 2-column category grid */}
-                    <div className="grid grid-cols-2 gap-x-2 p-3 max-h-[420px] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-x-2 p-3 max-h-105 overflow-y-auto">
                       {shopCategories.map((category) => {
                         const subcategories =
                           taxonomyGroupByCategory.get(category.toLowerCase())?.subcategories ?? [];

@@ -264,22 +264,20 @@ export default function CheckoutPage() {
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Checkout Form */}
           <motion.div className="lg:col-span-2" variants={itemVariants}>
-            <div className="bg-white rounded-lg p-8">
-              <h2 className="text-2xl font-semibold mb-4 text-gray-900">Checkout</h2>
+            <div className="bg-white rounded-xl p-4 sm:p-6 md:p-8 shadow-sm">
+              <h2 className="text-xl sm:text-2xl font-semibold mb-4 text-gray-900">Checkout</h2>
 
-              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 mb-8">
+              <div className="flex flex-col gap-2 text-xs sm:text-sm text-gray-500 mb-6">
                 <span>🔒 Secure Checkout</span>
-                <span>•</span>
                 <span>Fast Nationwide Delivery</span>
-                <span>•</span>
                 <span>Premium Thrift Quality</span>
               </div>
 
               {/* Step Indicator */}
-              <div className="flex gap-4 mb-8">
+              <div className="flex gap-2 mb-8 sm:gap-4">
                 {[1, 2].map((s) => (
                   <button
                     key={s}
@@ -290,7 +288,7 @@ export default function CheckoutPage() {
                         setStep(2);
                       }
                     }}
-                    className={`flex-1 py-2 rounded text-sm font-medium transition ${
+                    className={`flex-1 py-2 px-2 rounded-lg text-xs sm:text-sm font-medium transition ${
                       step === s
                         ? "bg-gray-900 text-white"
                         : step > s
@@ -298,7 +296,8 @@ export default function CheckoutPage() {
                         : "bg-gray-100 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {step > s ? "✓ " : ""}{s === 1 ? "Shipping" : "Payment"}
+                    <span className="hidden sm:inline">{step > s ? "✓ " : ""}{s === 1 ? "Shipping" : "Payment"}</span>
+                    <span className="sm:hidden">{step > s ? "✓" : "Step " + s}</span>
                   </button>
                 ))}
               </div>
@@ -309,7 +308,7 @@ export default function CheckoutPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
+                  className="space-y-4 sm:space-y-6"
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-900 mb-2">Email*</label>
@@ -321,11 +320,11 @@ export default function CheckoutPage() {
                       value={effectiveFormData.email}
                       onChange={handleInputChange}
                       placeholder="your@email.com"
-                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">First Name*</label>
                       <input
@@ -336,7 +335,7 @@ export default function CheckoutPage() {
                         value={effectiveFormData.firstName}
                         onChange={handleInputChange}
                         placeholder="John"
-                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                       />
                     </div>
                     <div>
@@ -349,7 +348,7 @@ export default function CheckoutPage() {
                         value={effectiveFormData.lastName}
                         onChange={handleInputChange}
                         placeholder="Doe"
-                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                       />
                     </div>
                   </div>
@@ -364,7 +363,7 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleInputChange}
                       placeholder="08012345678"
-                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                     />
                   </div>
 
@@ -378,11 +377,11 @@ export default function CheckoutPage() {
                       value={formData.address}
                       onChange={handleInputChange}
                       placeholder="123 Main Street"
-                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-2">City*</label>
                       <input
@@ -393,7 +392,7 @@ export default function CheckoutPage() {
                         value={formData.city}
                         onChange={handleInputChange}
                         placeholder="Lagos"
-                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                       />
                     </div>
                     <div>
@@ -406,7 +405,7 @@ export default function CheckoutPage() {
                         value={formData.state}
                         onChange={handleInputChange}
                         placeholder="Lagos"
-                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                        className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                       />
                     </div>
                   </div>
@@ -423,7 +422,7 @@ export default function CheckoutPage() {
                       value={formData.zipCode}
                       onChange={handleInputChange}
                       placeholder="100001"
-                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                     />
                   </div>
 
@@ -436,7 +435,7 @@ export default function CheckoutPage() {
                       required
                       value={formData.country}
                       onChange={handleInputChange}
-                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded outline-none focus:border-black transition"
+                      className="w-full border text-stone-800 border-gray-300 px-4 py-3 rounded-lg outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
                     />
                   </div>
 
@@ -445,23 +444,25 @@ export default function CheckoutPage() {
                     <label className="block text-sm font-medium text-gray-900 mb-3">
                       Delivery Method
                     </label>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {[
                         { value: "standard", label: "Standard Delivery", sub: "2–5 business days · Free over ₦50,000" },
                         { value: "express", label: "Express Delivery", sub: "24–48 hours · ₦5,000" },
                         { value: "pickup", label: "Store Pickup", sub: "Pickup from our location · Free" },
                       ].map(({ value, label, sub }) => (
-                        <button
+                        <motion.button
                           key={value}
                           type="button"
                           onClick={() => setDeliveryMethod(value as "standard" | "express" | "pickup")}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
                           className={`w-full border rounded-lg p-4 text-left transition ${
-                            deliveryMethod === value ? "border-black bg-gray-50" : "border-gray-300"
+                            deliveryMethod === value ? "border-gray-900 bg-gray-50 ring-2 ring-gray-900" : "border-gray-300 hover:border-gray-400"
                           }`}
                         >
-                          <p className="font-medium">{label}</p>
-                          <p className="text-sm text-gray-500 mt-1">{sub}</p>
-                        </button>
+                          <p className="font-medium text-gray-900">{label}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 mt-1">{sub}</p>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -471,7 +472,7 @@ export default function CheckoutPage() {
                       if (validateShippingStep()) setStep(2);
                     }}
                     disabled={loading}
-                    className="w-full bg-gray-900 text-white py-3 rounded hover:bg-gray-800 transition"
+                    className="w-full bg-gray-900 text-white py-3 sm:py-4 rounded-lg hover:bg-gray-800 disabled:bg-gray-500 transition font-medium"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -486,19 +487,19 @@ export default function CheckoutPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
+                  className="space-y-4 sm:space-y-6"
                 >
-                  <div className="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                  <div className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50">
                     <p className="font-semibold text-gray-900 mb-2">Payment Integration Coming Soon</p>
-                    <p className="text-sm text-gray-500 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
                       Secure payment integration with Paystack or Flutterwave will be available here.
                     </p>
                   </div>
 
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <motion.button
                       onClick={() => setStep(1)}
-                      className="flex-1 border border-gray-300 py-3 text-stone-800 rounded hover:bg-gray-50 transition"
+                      className="flex-1 border border-gray-300 py-3 text-stone-800 rounded-lg hover:bg-gray-50 transition font-medium"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -507,7 +508,7 @@ export default function CheckoutPage() {
                     <motion.button
                       onClick={handlePlaceOrder}
                       disabled={loading}
-                      className="flex-1 bg-gray-900 text-white py-3 rounded hover:bg-gray-800 transition disabled:opacity-50"
+                      className="flex-1 bg-gray-900 text-white py-3 rounded-lg hover:bg-gray-800 disabled:bg-gray-500 transition font-medium"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -519,48 +520,50 @@ export default function CheckoutPage() {
             </div>
           </motion.div>
 
-          {/* Order Summary */}
-          <motion.div variants={itemVariants}>
-            <div className="bg-white rounded-lg p-8 lg:sticky lg:top-20">
-              <h3 className="text-xl font-semibold mb-6 text-gray-900">Order Summary</h3>
+          {/* Order Summary - Mobile: below form, Desktop: sidebar */}
+          <motion.div variants={itemVariants} className="lg:col-span-1">
+            <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm lg:sticky lg:top-20">
+              <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6 text-gray-900">Order Summary</h3>
 
-              <div className="space-y-4 max-h-80 overflow-y-auto mb-6">
+              <div className="space-y-3 max-h-64 sm:max-h-80 overflow-y-auto mb-4 sm:mb-6 pb-4 sm:pb-6 border-b">
                 {cart.map((item) => (
-                  <div key={`${item.id}-${item.selectedSize}`} className="flex gap-4 pb-4 border-b">
-                    <div className="relative w-16 h-20 shrink-0 bg-gray-100">
+                  <div key={`${item.id}-${item.selectedSize}`} className="flex gap-3">
+                    <div className="relative w-14 h-16 shrink-0 bg-gray-100 rounded sm:w-16 sm:h-20">
                       <Image
                         src={item.images?.[0] || IMAGE_PLACEHOLDER}
                         alt={item.name}
                         fill
-                        className="object-cover"
+                        className="object-cover rounded"
                       />
                     </div>
-                    <div className="flex-1 text-sm">
-                      <p className="font-medium text-gray-900">{item.name}</p>
+                    <div className="flex-1 text-xs sm:text-sm">
+                      <p className="font-medium text-gray-900 line-clamp-2">{item.name}</p>
                       <p className="text-gray-500">{item.selectedSize}</p>
-                      <p className="font-semibold text-gray-900 mt-1">
-                        ₦{(item.price * item.quantity).toLocaleString()}
-                      </p>
-                      <p className="text-gray-500">Qty: {item.quantity}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="font-semibold text-gray-900">
+                          ₦{(item.price * item.quantity).toLocaleString()}
+                        </p>
+                        <p className="text-gray-500">x{item.quantity}</p>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="space-y-3 pt-6 border-t">
-                <div className="flex justify-between text-gray-600">
+              <div className="space-y-2 sm:space-y-3 pt-4 sm:pt-6 border-t">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-600">
                   <span>Subtotal</span>
-                  <span>₦{subtotal.toLocaleString()}</span>
+                  <span className="font-medium">₦{subtotal.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-600">
                   <span>Shipping</span>
-                  <span>{shipping === 0 ? "Free" : `₦${shipping.toLocaleString()}`}</span>
+                  <span className="font-medium">{shipping === 0 ? "Free" : `₦${shipping.toLocaleString()}`}</span>
                 </div>
-                <div className="flex justify-between text-gray-600">
+                <div className="flex justify-between text-xs sm:text-sm text-gray-600">
                   <span>Delivery</span>
-                  <span className="capitalize">{deliveryMethod}</span>
+                  <span className="font-medium capitalize">{deliveryMethod}</span>
                 </div>
-                <div className="flex justify-between text-lg font-semibold text-gray-900 pt-3 border-t">
+                <div className="flex justify-between text-base sm:text-lg font-semibold text-gray-900 pt-2 sm:pt-3 border-t">
                   <span>Total</span>
                   <span>₦{total.toLocaleString()}</span>
                 </div>

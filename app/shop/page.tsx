@@ -129,125 +129,130 @@ export default function ShopPage() {
   ];
 
   return (
-    <main className="px-4 md:px-8 py-10 bg-gray-50">
+    <main className="px-4 md:px-8 py-6 md:py-10 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-12">
+        <div className="mb-8 md:mb-12">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="uppercase tracking-[0.3em] text-sm text-gray-500 mb-2">
+              <p className="uppercase tracking-[0.3em] text-xs md:text-sm text-gray-500 mb-2">
                 Find items for my child quickly
               </p>
             </div>
           </div>
-
-          
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setFiltersOpen((current) => !current)}
-            className="inline-flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition hover:border-gray-300"
-          >
-            <Filter size={16} />
-            {filtersOpen ? "Hide filters" : "Show filters"}
-            <ChevronDown
-              size={16}
-              className={`transition-transform ${filtersOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-        </div>
+        {/* Sort and Active Filters - Mobile optimized */}
+        <div className="mb-4 md:mb-6 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm md:text-base text-gray-600">
+              <span className="font-medium">{total}</span> items
+            </p>
 
-        <div
-          className={
-            filtersOpen
-              ? "grid grid-cols-1 gap-8 lg:grid-cols-[320px_1fr] lg:gap-12"
-              : "grid grid-cols-1 gap-8"
-          }
-        >
-          {filtersOpen && (
-            <div className="space-y-4">
-              <ShopFilters
-                search={search}
-                onSearchChange={handleSearchChange}
-                filters={filters}
-                onFiltersChange={handleFilterChange}
-                categories={categories}
-                ageGroups={ageGroups}
-              />
+            <label className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+              <span className="font-medium whitespace-nowrap">Sort</span>
+              <span className="relative inline-flex min-w-40 md:min-w-55 items-center">
+                <select
+                  value={sortBy}
+                  onChange={(e) =>
+                    handleSortChange(
+                      e.target.value as "featured" | "price-asc" | "price-desc" | "best-selling"
+                    )
+                  }
+                  className="w-full appearance-none rounded-lg md:rounded-full border border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3 pr-8 md:pr-10 text-xs md:text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="best-selling">Best Selling</option>
+                  <option value="price-asc">Low to High</option>
+                  <option value="price-desc">High to Low</option>
+                </select>
+                <ChevronDown
+                  size={16}
+                  className="pointer-events-none absolute right-2 md:right-4 text-gray-500"
+                />
+              </span>
+            </label>
+          </div>
+
+          {/* Active Filters Chips */}
+          {(activeCategory !== "all" || activeSubcategory || filters.ageGroup !== "all" || filters.condition !== "all") && (
+            <div className="flex flex-wrap gap-2">
+              {activeCategory !== "all" && (
+                <button
+                  className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-200"
+                  onClick={() =>
+                    categoryParam
+                      ? router.push("/shop")
+                      : setFilters((s) => ({ ...s, category: "all" }))
+                  }
+                >
+                  ✕ {formatCategory(activeCategory)}
+                </button>
+              )}
+
+              {activeSubcategory && (
+                <button
+                  className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-200"
+                  onClick={() => {
+                    if (activeCategory !== "all") {
+                      router.push(`/shop?category=${encodeURIComponent(activeCategory)}`);
+                      return;
+                    }
+                    router.push("/shop");
+                  }}
+                >
+                  ✕ {activeSubcategory}
+                </button>
+              )}
+
+              {filters.ageGroup !== "all" && (
+                <button
+                  className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 transition hover:bg-blue-200"
+                  onClick={() => setFilters((s) => ({ ...s, ageGroup: "all" }))}
+                >
+                  ✕ {filters.ageGroup}
+                </button>
+              )}
+
+              {filters.condition !== "all" && (
+                <button
+                  className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700 transition hover:bg-emerald-200"
+                  onClick={() => setFilters((s) => ({ ...s, condition: "all" }))}
+                >
+                  ✕ {filters.condition}
+                </button>
+              )}
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 lg:gap-8">
+          {/* Desktop Filters - Always visible on lg screens */}
+          <div className="hidden lg:block">
+            <ShopFilters
+              search={search}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFiltersChange={handleFilterChange}
+              categories={categories}
+              ageGroups={ageGroups}
+            />
+          </div>
+
+          {/* Mobile Filters - Floating button, handled inside ShopFilters component */}
+          <div className="lg:hidden">
+            <ShopFilters
+              search={search}
+              onSearchChange={handleSearchChange}
+              filters={filters}
+              onFiltersChange={handleFilterChange}
+              categories={categories}
+              ageGroups={ageGroups}
+            />
+          </div>
 
           {/* Products */}
-          <section className="space-y-8">
-            <div className="flex flex-col gap-4 mb-8    sm:flex-row sm:items-center sm:justify-between sm:px-5">
-              <div className="flex items-center  ">
-                <p className="text-gray-500">{total} items</p>
-
-                {/* Active chips */}
-                <div className="flex flex-wrap gap-2">
-                  {activeCategory !== "all" && (
-                    <button
-                      className="rounded-full bg-gray-100 px-3 py-1 text-xs capitalize text-gray-700 transition hover:bg-gray-200"
-                      onClick={() =>
-                        categoryParam
-                          ? router.push("/shop")
-                          : setFilters((s) => ({ ...s, category: "all" }))
-                      }
-                    >
-                      {formatCategory(activeCategory)}
-                    </button>
-                  )}
-
-                  {activeSubcategory && (
-                    <button
-                      className="rounded-full bg-rose-100 px-3 py-1 text-xs text-rose-700 transition hover:bg-rose-200"
-                      onClick={() => {
-                        if (activeCategory !== "all") {
-                          router.push(`/shop?category=${encodeURIComponent(activeCategory)}`);
-                          return;
-                        }
-
-                        router.push("/shop");
-                      }}
-                    >
-                      {activeSubcategory}
-                    </button>
-                  )}
-
-                  {filters.ageGroup !== "all" && (
-                    <button
-                      className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 transition hover:bg-blue-200"
-                      onClick={() => setFilters((s) => ({ ...s, ageGroup: "all" }))}
-                    >
-                      {filters.ageGroup === "0-6m"
-                        ? "0–6 months"
-                        : filters.ageGroup === "6-12m"
-                        ? "6–12 months"
-                        : filters.ageGroup === "1-2y"
-                        ? "1–2 years"
-                        : filters.ageGroup === "3-5y"
-                        ? "3–5 years"
-                        : "6–10 years"}
-                    </button>
-                  )}
-
-                  {filters.condition !== "all" && (
-                    <button
-                      className={`rounded-full px-3 py-1 text-xs transition ${
-                        filters.condition === "like-new"
-                          ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                          : filters.condition === "gently-used"
-                          ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                      onClick={() => setFilters((s) => ({ ...s, condition: "all" }))}
-                    >
-                      {filters.condition === "like-new"
-                        ? "Like New"
-                        : filters.condition === "gently-used"
-                        ? "Gently Used"
+          <section className="space-y-6 md:space-y-8"
                         : "Used"}
                     </button>
                   )}
@@ -318,18 +323,22 @@ export default function ShopPage() {
             </div>
 
             {loading ? (
-              <div className="flex h-75 items-center justify-center border border-dashed border-gray-300 bg-white">
-                <p className="text-gray-500">Loading products...</p>
+              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
+                <div className="text-center">
+                  <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4"></div>
+                  <p className="text-gray-500">Loading products...</p>
+                </div>
               </div>
             ) : products.length === 0 ? (
-              <div className="flex h-75 items-center justify-center border border-dashed border-gray-300 bg-white">
-                <p className="text-gray-500">
-                  No products found.
-                </p>
+              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
+                <div className="text-center">
+                  <p className="text-gray-500 mb-2">No products found.</p>
+                  <p className="text-sm text-gray-400">Try adjusting your filters</p>
+                </div>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
                   {products.map((product) => (
                     <ProductCard
                       key={String(product.id)}

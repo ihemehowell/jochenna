@@ -5,6 +5,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/cart/CartDrawer";
 import Toast from "@/components/ui/Toast";
+import Footer from "@/components/Footer";
 import { useAuthStore } from "@/shore/authStore";
 import { useCartStore } from "@/shore/cartStore";
 
@@ -41,7 +42,8 @@ export default function AppShell({
       <Navbar />
       <CartDrawer />
       <Toast />
-      {children}
+      <div className="flex-1">{children}</div>
+      <Footer />
     </>
   );
 }
