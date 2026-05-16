@@ -57,6 +57,12 @@ export default function ProductGallery({
     setActiveIndex(Math.min(galleryImages.length - 1, activeIndex + 1));
   };
 
+  const markImageAsBroken = (index: number) => {
+    setBrokenImages((current) =>
+      current[index] ? current : { ...current, [index]: true }
+    );
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -68,63 +74,15 @@ export default function ProductGallery({
     return () => galleryRef.current?.removeEventListener("keydown", handleKeyDown);
   }, [activeIndex, galleryImages.length]);
 
-  useEffect(() => {
-    if (activeIndex >= galleryImages.length) {
-      setActiveIndex(Math.max(0, galleryImages.length - 1));
-    }
-  }, [activeIndex, galleryImages.length]);
+  // useEffect(() => {
+  //   if (activeIndex >= galleryImages.length) {
+  //     setActiveIndex(Math.max(0, galleryImages.length - 1));
+  //   }
+  // }, [activeIndex, galleryImages.length]);
 
-  const thumbnailVariants = {
-    hidden: { opacity: 0, scale: 0.8 },
-    visible: (i: number) => ({
-      opacity: 1,
-      scale: 1,
-      transition: {
-        delay: i * 0.05,
-        duration: 0.3,
-      },
-    }),
-  };
 
   return (
     <div className="flex flex-col-reverse lg:flex-row gap-4" ref={galleryRef}>
-      
-      {/* Thumbnails */}
-      <div className="flex lg:flex-col gap-3 overflow-x-auto lg:overflow-x-visible">
-        {galleryImages.map((image: string, index: number) => (
-          <motion.button
-            key={index}
-            onClick={() => setActiveIndex(index)}
-            className={`relative h-16 w-16 shrink-0 border-2 overflow-hidden rounded-lg transition-colors sm:h-20 sm:w-20 ${
-              activeIndex === index
-                ? "border-gray-900"
-                : "border-gray-200 hover:border-gray-300"
-            }`}
-            variants={thumbnailVariants}
-            custom={index}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.5 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label={`View image ${index + 1}`}
-          >
-            <Image
-              src={brokenImages[index] ? FALLBACK_IMAGE : image}
-              alt={`${productName} - Image ${index + 1}`}
-              fill
-              className="object-cover"
-              onError={() =>
-                setBrokenImages((current) =>
-                  current[index] ? current : { ...current, [index]: true }
-                )
-              }
-              sizes="80px"
-            />
-          </motion.button>
-        ))}
-      </div>
-
       {/* Main Image */}
       <div className="relative flex-1 bg-gray-100 overflow-hidden rounded-lg">
         {/* Touch Area */}
@@ -140,15 +98,15 @@ export default function ProductGallery({
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="relative w-full h-full min-h-80 sm:min-h-96 md:min-h-screen"
+            className="relative w-full h-full min-h-35 flex items-center justify-center"
           >
             <Image
               src={activeImage}
               alt={productName}
               width={1000}
               height={1200}
-              className="w-full h-full object-cover"
-              onError={() => console.error("Image failed to load")}
+              className="w-full h-100 object-cover transition-opacity duration-300"
+              onError={() => markImageAsBroken(activeIndex)}
             />
           </motion.div>
         </div>

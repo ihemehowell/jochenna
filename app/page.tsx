@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import FeaturedProducts from "@/components/products/FeaturedProduct";
 import { getProductCategories } from "@/lib/api";
+import PopularCategories from "@/components/popular-categories";
 
 export default function HomePage() {
   const [categories, setCategories] = useState<string[]>([]);
@@ -38,12 +39,7 @@ export default function HomePage() {
       transition: { duration: 0.6 },
     },
   };
-  const categoryAccents = [
-    "from-sky-100 to-white",
-    "from-rose-100 to-white",
-    "from-amber-100 to-white",
-    "from-emerald-100 to-white",
-  ];
+  
 
   return (
     <main className="bg-white">
@@ -165,61 +161,9 @@ export default function HomePage() {
       </section>
 
       {/* Category Browse */}
-      <section className="px-4 py-16 md:px-8">
+      <section className="">
         <div className="mx-auto max-w-7xl">
-          <motion.div
-            className="mb-10 rounded-4xl bg-slate-50 px-6 py-8 shadow-sm ring-1 ring-slate-200/70 flex flex-col gap-3 md:px-8"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.4 }}
-            variants={fadeUp}
-          >
-            <p className="text-xs font-semibold uppercase tracking-[0.26em] text-slate-500">
-              Most popular categories
-            </p>
-            <h2 className="text-3xl font-semibold text-gray-900 md:text-4xl">
-              Start with the category families look for most.
-            </h2>
-            <p className="max-w-2xl text-sm leading-7 text-slate-600">
-              Jump straight to the things parents ask for first: clothes, toys, baby essentials, and shoes.
-            </p>
-          </motion.div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((category, index) => (
-              <motion.div
-                key={category}
-                className={`rounded-[1.75rem] bg-linear-to-br ${categoryAccents[index % categoryAccents.length]} border border-gray-200 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, amount: 0.3 }}
-                variants={{
-                  hidden: { opacity: 0, y: 18 },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { delay: index * 0.08, duration: 0.55 },
-                  },
-                }}
-              >
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 text-lg font-semibold text-gray-900 shadow-sm">
-                  {category.charAt(0)}
-                </div>
-                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-600">
-                  {category}
-                </p>
-                <p className="mt-4 text-base leading-7 text-gray-700">
-                  Browse {category.toLowerCase()} sourced from the backend catalog.
-                </p>
-                <Link
-                  href="/shop"
-                  className="mt-6 inline-flex text-sm font-semibold text-gray-900 underline decoration-gray-400 underline-offset-4"
-                >
-                  Browse {category.toLowerCase()}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
+          <PopularCategories categories={categories} />
         </div>
       </section>
 
