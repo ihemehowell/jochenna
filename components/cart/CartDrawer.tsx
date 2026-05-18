@@ -192,9 +192,15 @@ export default function CartDrawer() {
                             ₦{item.price.toLocaleString()}
                           </p>
 
-                          <p className="text-xs text-gray-500 mt-1">
-                            Size: <span className="font-medium">{item.selectedSize}</span>
-                          </p>
+                          {item.selectedSize ? (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Size: <span className="font-medium">{item.selectedSize}</span>
+                            </p>
+                          ) : (
+                            <p className="text-xs text-gray-500 mt-1">
+                              No size selection needed
+                            </p>
+                          )}
 
                           {/* Quantity Controls */}
                           <div className="flex items-center gap-2 mt-auto pt-2">

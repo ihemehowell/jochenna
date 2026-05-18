@@ -34,7 +34,7 @@ interface CartState {
 const isValidProductSelection = (
   product: Product | undefined,
   selectedSize: string
-) => Boolean(product && selectedSize);
+) => Boolean(product && ((product.sizes?.length ?? 0) === 0 || selectedSize));
 
 const isMatchingCartItem = (
   item: CartItem,
@@ -117,7 +117,7 @@ export const useCartStore = create<CartState>()(
         const result = await addCartItem(token, {
           productId: product.id,
           quantity: 1,
-          size: selectedSize,
+          size: selectedSize || "",
         });
 
         if (result.ok && result.items) {

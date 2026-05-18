@@ -203,7 +203,13 @@ function normalizeCartEntry(entry: RawCartEntry): ApiCartItem | null {
   const quantity = asNumber(entry.quantity, 1);
   const selectedSize = asString(entry.selectedSize ?? entry.size, "");
 
-  if (!product.id || !selectedSize) {
+  if (!product.id) {
+    return null;
+  }
+
+  const requiresSize = (product.sizes?.length ?? 0) > 0;
+
+  if (requiresSize && !selectedSize) {
     return null;
   }
 
@@ -670,7 +676,7 @@ export async function getCart(token: string): Promise<{ ok: boolean; items: ApiC
   }
 }
 
-export async function addCartItem(token: string, payload: { productId: string; quantity: number; size: string }): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
+export async function addCartItem(token: string, payload: { productId: string; quantity: number; size?: string }): Promise<{ ok: boolean; items?: ApiCartItem[]; message?: string }> {
   try {
     const response = await fetch(buildApiUrl("/api/cart/add"), {
       method: "POST",
@@ -797,6 +803,19 @@ type SubmitOrderResult = {
   isMock?: boolean;
 };
 
+type VerifyPaystackPaymentResult = {
+  ok: boolean;
+  message: string;
+  orderId?: string;
+};
+
+type InitializePaystackPaymentResult = {
+  ok: boolean;
+  message: string;
+  authorizationUrl?: string;
+  reference?: string;
+};
+
 export async function submitOrder(
   payload: { shippingAddress: ShippingAddress; deliveryMethod: "standard" | "express" | "pickup" },
   token?: string
@@ -834,6 +853,131 @@ export async function submitOrder(
   } catch (error) {
     logApiEvent("error", "Error placing order.", error);
     return { ok: false, message: "Could not reach the checkout service. Check your backend and try again." };
+  }
+}
+
+export async function verifyPaystackPayment(
+  payload: {
+    reference: string;
+    shippingAddress?: ShippingAddress;
+    deliveryMethod?: "standard" | "express" | "pickup";
+  },
+  token?: string
+): Promise<VerifyPaystackPaymentResult> {
+  try {
+    if (!token) {
+      return { ok: false, message: "Please sign in to place an order." };
+    }
+
+    const response = await fetch(buildApiUrl("/api/orders/paystack/verify"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Unable to verify payment (${response.status}).`;
+      try {
+        const body = (await response.json()) as { message?: string };
+        if (body.message) {
+          errorMessage = body.message;
+        }
+      } catch {
+        // Ignore JSON parse issues and keep default message.
+      }
+
+      return { ok: false, message: errorMessage };
+    }
+
+    const body = (await response.json()) as { id?: string; orderId?: string; message?: string };
+    return {
+      ok: true,
+      message: body.message ?? "Payment verified successfully.",
+      orderId: body.orderId ?? body.id,
+    };
+  } catch (error) {
+    logApiEvent("error", "Error verifying Paystack payment.", error);
+    return { ok: false, message: "Could not verify payment. Check your backend and try again." };
+  }
+}
+
+export async function initializePaystackPayment(
+  payload: {
+    shippingAddress: ShippingAddress;
+    deliveryMethod: "standard" | "express" | "pickup";
+  },
+  token?: string
+): Promise<InitializePaystackPaymentResult> {
+  try {
+    logApiEvent("info", "Initializing Paystack payment request.", {
+      hasToken: Boolean(token),
+      deliveryMethod: payload.deliveryMethod,
+      email: payload.shippingAddress?.email,
+    });
+
+    if (!token) {
+      return { ok: false, message: "Please sign in to place an order." };
+    }
+
+    const response = await fetch(buildApiUrl("/api/orders/paystack/initialize"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      let errorMessage = `Unable to initialize payment (${response.status}).`;
+      try {
+        const body = (await response.json()) as { message?: string };
+        if (body.message) {
+          errorMessage = body.message;
+        }
+      } catch {
+        // Ignore JSON parse issues and keep default message.
+      }
+
+      return { ok: false, message: errorMessage };
+    }
+
+    const body = (await response.json()) as {
+      authorizationUrl?: string;
+      authorization_url?: string;
+      reference?: string;
+      message?: string;
+    };
+
+    const resolvedAuthorizationUrl = body.authorizationUrl ?? body.authorization_url;
+
+    logApiEvent("info", "Paystack initialize API succeeded.", {
+      status: response.status,
+      reference: body.reference,
+      hasAuthorizationUrl: Boolean(resolvedAuthorizationUrl),
+      authorizationHost: resolvedAuthorizationUrl
+        ? (() => {
+            try {
+              return new URL(resolvedAuthorizationUrl).host;
+            } catch {
+              return "invalid-url";
+            }
+          })()
+        : null,
+    });
+
+    return {
+      ok: true,
+      message: body.message ?? "Payment initialized successfully.",
+      authorizationUrl: resolvedAuthorizationUrl,
+      reference: body.reference,
+    };
+  } catch (error) {
+    logApiEvent("error", "Error initializing Paystack payment.", error);
+    return { ok: false, message: "Could not initialize payment. Check your backend and try again." };
   }
 }
 

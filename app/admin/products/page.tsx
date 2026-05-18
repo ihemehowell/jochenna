@@ -174,7 +174,7 @@ export default function AdminProductsPage() {
     setSubmitting(true);
     try {
       if (token) {
-        const success = await deleteProductAdmin(token, id);
+        const success = await deleteProductAdmin(id, token);
         if (success) {
           setProducts(products.filter((p) => p.id !== id));
           pushToast("Product deleted successfully");

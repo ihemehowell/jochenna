@@ -14,6 +14,13 @@ const product: Product = {
   sizes: ["2T", "3T"],
 };
 
+const noSizeProduct: Product = {
+  ...product,
+  id: "p-2",
+  name: "Test Bottle",
+  sizes: [],
+};
+
 describe("cartStore", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -53,5 +60,15 @@ describe("cartStore", () => {
 
     const { cart } = useCartStore.getState();
     expect(cart).toHaveLength(0);
+  });
+
+  it("adds products that do not require a size", () => {
+    const { addToCart } = useCartStore.getState();
+
+    addToCart(noSizeProduct, "");
+
+    const { cart } = useCartStore.getState();
+    expect(cart).toHaveLength(1);
+    expect(cart[0].selectedSize).toBe("");
   });
 });

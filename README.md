@@ -72,6 +72,8 @@ Frontend expects a backend at `NEXT_PUBLIC_BACKEND_URL` with these endpoints:
 - `POST /api/products` (admin use)
 - `POST /api/products/seed`
 - `POST /api/orders` (optional; checkout falls back to demo mode when missing)
+- `POST /api/orders/paystack/initialize`
+- `POST /api/orders/paystack/verify`
 
 Notes:
 
@@ -92,6 +94,12 @@ Notes:
 - Validates required fields, email, and postal code format.
 - Submits order payload to `POST /api/orders` when available.
 - Uses demo-mode success fallback when order endpoint is not implemented.
+
+## Paystack Notes
+
+- This app currently uses Paystack redirect checkout (recommended for mobile reliability).
+- Keep `PAYSTACK_SECRET_KEY` only in backend environment variables.
+- For production reliability, configure a Paystack webhook to: `POST /api/orders/paystack/webhook` on your backend.
 
 ## Quality Checklist
 

@@ -194,7 +194,10 @@ export default function AdminOrdersPage() {
                   <div className="mt-3 space-y-2 text-sm text-gray-600">
                     {order.items.map((item) => (
                       <div key={`${item.id}-${item.selectedSize}`} className="flex items-center justify-between">
-                        <span>{item.name} · {item.selectedSize}</span>
+                        <span>
+                          {item.name}
+                          {item.selectedSize ? ` · ${item.selectedSize}` : " · No size needed"}
+                        </span>
                         <span>Qty {item.quantity}</span>
                       </div>
                     ))}

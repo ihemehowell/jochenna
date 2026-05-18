@@ -86,7 +86,9 @@ export default function OrderDetailsPage() {
                 <div key={`${item.id}-${item.selectedSize}`} className="flex items-center justify-between border-b border-gray-100 pb-4 last:border-b-0">
                   <div>
                     <p className="font-medium text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>
+                    <p className="text-sm text-gray-500">
+                      {item.selectedSize ? `Size: ${item.selectedSize}` : "No size needed"}
+                    </p>
                   </div>
                   <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                 </div>

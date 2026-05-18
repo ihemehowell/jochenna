@@ -33,12 +33,7 @@ export default function ProductCard({
       return;
     }
 
-    const defaultSize = product.sizes?.[0];
-    if (!defaultSize) {
-      pushToast("Please choose a product with a size option.");
-      return;
-    }
-
+    const defaultSize = product.sizes?.[0] ?? "";
     addToCart(product, defaultSize);
     pushToast(`${product.name} added to cart.`);
   };

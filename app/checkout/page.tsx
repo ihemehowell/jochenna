@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Check } from "lucide-react";
 import Image from "next/image";
-import { submitOrder } from "@/lib/api";
+import { initializePaystackPayment, verifyPaystackPayment } from "@/lib/api";
 import { useAuthStore } from "@/shore/authStore";
 import { useCartStore } from "@/shore/cartStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
@@ -14,6 +15,8 @@ const IMAGE_PLACEHOLDER =
   'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960"%3E%3Crect width="800" height="960" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="Arial, sans-serif" font-size="28"%3EImage unavailable%3C/text%3E%3C/svg%3E';
 
 export default function CheckoutPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { cart, clearCart } = useCartStore();
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
@@ -22,11 +25,13 @@ export default function CheckoutPage() {
   // ── All useState hooks first ──
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [pendingCheckoutUrl, setPendingCheckoutUrl] = useState("");
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderStatusLabel, setOrderStatusLabel] = useState("");
   const checkoutId = useId();
   const orderNumber = `JOC-${checkoutId.replace(/[^a-zA-Z0-9]/g, "").slice(-6).toUpperCase().padStart(6, "0")}`;
   const [deliveryMethod, setDeliveryMethod] = useState<"standard" | "express" | "pickup">("standard");
+  const processedReference = useRef<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     firstName: "",
@@ -61,6 +66,7 @@ export default function CheckoutPage() {
       ? 0
       : 2000;
   const total = subtotal + shipping;
+  const referenceParam = searchParams.get("reference")?.trim() || "";
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -109,34 +115,128 @@ export default function CheckoutPage() {
       return;
     }
 
-    setLoading(true);
-    const result = await submitOrder(
-      {
-        shippingAddress: {
-          name: `${effectiveFormData.firstName.trim()} ${effectiveFormData.lastName.trim()}`.trim(),
-          email: effectiveFormData.email.trim(),
-          phone: effectiveFormData.phone.trim(),
-          address: effectiveFormData.address.trim(),
-          city: effectiveFormData.city.trim(),
-          postalCode: effectiveFormData.zipCode.trim(),
-          country: effectiveFormData.country.trim() || "Nigeria",
-        },
+    try {
+      setLoading(true);
+      setPendingCheckoutUrl("");
+      console.info("[checkout] Starting Paystack initialization", {
         deliveryMethod,
-      },
-      token || undefined
-    );
-    setLoading(false);
+        hasToken: Boolean(token),
+        cartItems: cart.length,
+        visibilityState: document.visibilityState,
+      });
 
-    if (!result.ok) {
-      pushToast(result.message);
-      return;
+      const result = await initializePaystackPayment(
+        {
+          shippingAddress: {
+            name: `${effectiveFormData.firstName.trim()} ${effectiveFormData.lastName.trim()}`.trim(),
+            email: effectiveFormData.email.trim(),
+            phone: effectiveFormData.phone.trim(),
+            address: effectiveFormData.address.trim(),
+            city: effectiveFormData.city.trim(),
+            postalCode: effectiveFormData.zipCode.trim(),
+            country: effectiveFormData.country.trim() || "Nigeria",
+          },
+          deliveryMethod,
+        },
+        token || undefined
+      );
+
+      if (!result.ok || !result.authorizationUrl) {
+        console.warn("[checkout] Paystack initialization returned no redirect URL", {
+          ok: result.ok,
+          message: result.message,
+          reference: result.reference,
+        });
+        setLoading(false);
+        pushToast(result.message);
+        return;
+      }
+
+      const checkoutUrl = result.authorizationUrl.trim();
+      const isValidCheckoutUrl = /^https:\/\/checkout\.paystack\.com\//i.test(checkoutUrl);
+
+      if (!isValidCheckoutUrl) {
+        console.error("[checkout] Invalid Paystack checkout URL", {
+          checkoutUrl,
+          reference: result.reference,
+        });
+        setLoading(false);
+        pushToast("Received an invalid Paystack checkout URL.");
+        return;
+      }
+
+      // Use direct navigation first, then expose a manual fallback link if navigation is blocked.
+      console.info("[checkout] Redirecting to Paystack", {
+        checkoutUrl,
+        reference: result.reference,
+      });
+      window.location.href = checkoutUrl;
+
+      window.setTimeout(() => {
+        if (document.visibilityState === "visible") {
+          console.warn("[checkout] Redirect fallback activated", {
+            checkoutUrl,
+            reference: result.reference,
+            visibilityState: document.visibilityState,
+          });
+          setPendingCheckoutUrl(checkoutUrl);
+          setLoading(false);
+          pushToast("Redirect was blocked. Tap below to open Paystack checkout.");
+        }
+      }, 1500);
+    } catch (error) {
+      console.error("[checkout] Paystack redirect failed", error);
+      setLoading(false);
+      pushToast(error instanceof Error ? error.message : "Unable to open Paystack checkout.");
     }
-
-    setOrderStatusLabel(result.message);
-    pushToast(result.message);
-    setOrderPlaced(true);
-    clearCart();
   };
+
+  useEffect(() => {
+    const verifyReference = async () => {
+      if (!referenceParam || processedReference.current === referenceParam || orderPlaced) {
+        return;
+      }
+
+      processedReference.current = referenceParam;
+      setLoading(true);
+
+      const result = await verifyPaystackPayment(
+        { reference: referenceParam },
+        token || undefined
+      );
+
+      setLoading(false);
+
+      if (!result.ok) {
+        pushToast(result.message);
+        return;
+      }
+
+      setOrderStatusLabel(result.message);
+      pushToast(result.message);
+      setOrderPlaced(true);
+      clearCart();
+      router.replace("/checkout");
+    };
+
+    void verifyReference();
+  }, [
+    clearCart,
+    deliveryMethod,
+    effectiveFormData.address,
+    effectiveFormData.city,
+    effectiveFormData.country,
+    effectiveFormData.email,
+    effectiveFormData.firstName,
+    effectiveFormData.lastName,
+    effectiveFormData.phone,
+    effectiveFormData.zipCode,
+    orderPlaced,
+    pushToast,
+    referenceParam,
+    router,
+    token,
+  ]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -490,9 +590,9 @@ export default function CheckoutPage() {
                   className="space-y-4 sm:space-y-6"
                 >
                   <div className="border border-gray-200 rounded-lg p-4 sm:p-5 bg-gray-50">
-                    <p className="font-semibold text-gray-900 mb-2">Payment Integration Coming Soon</p>
+                    <p className="font-semibold text-gray-900 mb-2">Secure Paystack checkout</p>
                     <p className="text-xs sm:text-sm text-gray-500 leading-relaxed">
-                      Secure payment integration with Paystack or Flutterwave will be available here.
+                      You&apos;ll be redirected to Paystack to pay securely by card, bank transfer, or USSD.
                     </p>
                   </div>
 
@@ -512,9 +612,19 @@ export default function CheckoutPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      {loading ? "Processing..." : "Place Order"}
+                      {loading ? "Redirecting..." : "Pay with Paystack"}
                     </motion.button>
                   </div>
+
+                  {pendingCheckoutUrl && (
+                    <a
+                      href={pendingCheckoutUrl}
+                      className="block w-full text-center border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition font-medium text-gray-900"
+                      rel="noopener noreferrer"
+                    >
+                      Open Paystack Checkout
+                    </a>
+                  )}
                 </motion.div>
               )}
             </div>
@@ -538,7 +648,9 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 text-xs sm:text-sm">
                       <p className="font-medium text-gray-900 line-clamp-2">{item.name}</p>
-                      <p className="text-gray-500">{item.selectedSize}</p>
+                      <p className="text-gray-500">
+                        {item.selectedSize || "No size needed"}
+                      </p>
                       <div className="flex items-center justify-between mt-1">
                         <p className="font-semibold text-gray-900">
                           ₦{(item.price * item.quantity).toLocaleString()}
