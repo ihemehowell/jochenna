@@ -27,7 +27,7 @@ interface Category {
 }
 
 interface Props {
-  categories: Category[];
+  categories: (string | Category)[];
 }
 
 const CARDS_VISIBLE = 4; // how many cards show at once on desktop
