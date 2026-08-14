@@ -171,7 +171,7 @@ export default function Navbar() {
                     <Link
                       href={href}
                       onClick={() => setMobileMenuOpen(false)}
-                      className="py-4 border-b text-lg text-gray-500 hover:text-gray-700 transition-colors block"
+                      className="py-4 border-b text-lg text-ink-soft hover:text-ink transition-colors block"
                     >
                       {label}
                     </Link>
@@ -186,7 +186,7 @@ export default function Navbar() {
                       <Link
                         href="/shop"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="text-lg text-gray-500 transition-colors hover:text-gray-700"
+                        className="text-lg text-ink-soft transition-colors hover:text-ink"
                       >
                         Shop
                       </Link>
@@ -206,7 +206,7 @@ export default function Navbar() {
                                 <Link
                                   href={`/shop?category=${encodeURIComponent(category)}`}
                                   onClick={() => setMobileMenuOpen(false)}
-                                  className="py-1.5 text-sm font-medium text-gray-700 transition-colors hover:text-gray-900"
+                                  className="py-1.5 text-sm font-medium text-ink transition-colors hover:text-ink"
                                 >
                                   {formatCategory(category)}
                                 </Link>
@@ -217,7 +217,7 @@ export default function Navbar() {
                                     onClick={() =>
                                       setExpandedCategory(isExpanded ? null : category)
                                     }
-                                    className="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                                    className="rounded-full p-1 text-ink-soft transition hover:bg-paper hover:text-ink"
                                     aria-label={`Toggle ${category} subcategories`}
                                   >
                                     <ChevronDown
@@ -246,7 +246,7 @@ export default function Navbar() {
                                           key={`${category}-${subcategory}`}
                                           href={`/shop?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`}
                                           onClick={() => setMobileMenuOpen(false)}
-                                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-800"
+                                          className="rounded-full bg-paper px-2.5 py-1 text-xs text-ink-soft transition-colors hover:bg-hairline hover:text-ink"
                                         >
                                           {subcategory}
                                         </Link>
@@ -282,7 +282,7 @@ export default function Navbar() {
 
       {/* ── Header ── */}
       <motion.header
-        className="sticky top-0 z-50 bg-white border-b border-gray-100"
+        className="sticky top-0 z-50 bg-white border-b border-hairline"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
@@ -309,7 +309,7 @@ export default function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-              <Link href="/" className="text-gray-500 transition-colors hover:text-gray-700">
+              <Link href="/" className="text-ink-soft transition-colors hover:text-ink">
                 Home
               </Link>
             </motion.div>
@@ -324,7 +324,7 @@ export default function Navbar() {
                 <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
                   <Link
                     href="/shop"
-                    className="text-gray-500 transition-colors hover:text-gray-700"
+                    className="text-ink-soft transition-colors hover:text-ink"
                     onClick={() => setShopMenuOpen(false)}
                   >
                     Shop
@@ -337,7 +337,7 @@ export default function Navbar() {
                     aria-label="Open shop categories"
                     aria-expanded={shopMenuOpen}
                     onClick={() => setShopMenuOpen((current) => !current)}
-                    className="rounded-full p-1 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
+                    className="rounded-full p-1 text-ink-soft transition hover:bg-paper hover:text-ink"
                   >
                     <ChevronDown
                       size={16}
@@ -354,13 +354,13 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-3 w-screen max-w-md overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl sm:w-140"
+                    className="absolute left-1/2 -translate-x-1/2 top-full z-50 mt-3 w-screen max-w-md overflow-hidden rounded-2xl border border-hairline bg-white shadow-xl sm:w-140"
                   >
                     {/* All goods link */}
                     <Link
                       href="/shop"
                       onClick={() => setShopMenuOpen(false)}
-                      className="block border-b border-gray-100 px-5 py-3 text-sm font-medium text-gray-900 transition hover:bg-gray-50"
+                      className="block border-b border-hairline px-5 py-3 text-sm font-medium text-ink transition hover:bg-paper"
                     >
                       All goods
                     </Link>
@@ -372,11 +372,11 @@ export default function Navbar() {
                           taxonomyGroupByCategory.get(category.toLowerCase())?.subcategories ?? [];
 
                         return (
-                          <div key={category} className="rounded-xl px-2 py-2.5 hover:bg-gray-50">
+                          <div key={category} className="rounded-xl px-2 py-2.5 hover:bg-paper">
                             <Link
                               href={`/shop?category=${encodeURIComponent(category)}`}
                               onClick={() => setShopMenuOpen(false)}
-                              className="block px-1 py-0.5 text-sm font-semibold text-gray-800 transition hover:text-gray-900"
+                              className="block px-1 py-0.5 text-sm font-semibold text-ink transition hover:text-ink"
                             >
                               {formatCategory(category)}
                             </Link>
@@ -388,7 +388,7 @@ export default function Navbar() {
                                     key={`${category}-${subcategory}`}
                                     href={`/shop?category=${encodeURIComponent(category)}&subcategory=${encodeURIComponent(subcategory)}`}
                                     onClick={() => setShopMenuOpen(false)}
-                                    className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600 transition hover:bg-gray-200 hover:text-gray-900"
+                                    className="rounded-full bg-paper px-2.5 py-1 text-xs text-ink-soft transition hover:bg-hairline hover:text-ink"
                                   >
                                     {subcategory}
                                   </Link>
@@ -408,7 +408,7 @@ export default function Navbar() {
               user?.role === "admin" ? [{ href: "/admin", label: "Admin" }] : []
             ).map(({ href, label }) => (
               <motion.div key={href} whileHover={{ y: -2 }} transition={{ duration: 0.2 }}>
-                <Link href={href} className="text-gray-500 transition-colors hover:text-gray-700">
+                <Link href={href} className="text-ink-soft transition-colors hover:text-ink">
                   {label}
                 </Link>
               </motion.div>
@@ -427,14 +427,14 @@ export default function Navbar() {
                 <button
                   type="button"
                   onClick={() => setAccountMenuOpen(!accountMenuOpen)}
-                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
+                  className="rounded-full border border-hairline px-3 py-1.5 text-sm text-ink transition hover:border-hairline"
                 >
                   {user.name.split(" ")[0] || "Account"}
                 </button>
               ) : (
                 <Link
                   href="/auth"
-                  className="rounded-full border border-gray-200 px-3 py-1.5 text-sm text-gray-700 transition hover:border-gray-300"
+                  className="rounded-full border border-hairline px-3 py-1.5 text-sm text-ink transition hover:border-hairline"
                 >
                   Login
                 </Link>
@@ -447,12 +447,12 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-lg"
+                    className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-hairline bg-white shadow-lg"
                   >
                     <Link
                       href="/auth"
                       onClick={() => setAccountMenuOpen(false)}
-                      className="block border-b border-gray-100 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
+                      className="block border-b border-hairline px-4 py-3 text-sm text-ink transition hover:bg-paper"
                     >
                       Account
                     </Link>
@@ -461,7 +461,7 @@ export default function Navbar() {
                       <Link
                         href="/admin"
                         onClick={() => setAccountMenuOpen(false)}
-                        className="block border-b border-gray-100 px-4 py-3 text-sm text-gray-700 transition hover:bg-gray-50"
+                        className="block border-b border-hairline px-4 py-3 text-sm text-ink transition hover:bg-paper"
                       >
                         Admin Panel
                       </Link>
@@ -489,7 +489,7 @@ export default function Navbar() {
                 className="relative inline-flex"
                 aria-label="View wishlist"
               >
-                <Heart size={22} className="text-gray-900" />
+                <Heart size={22} className="text-ink" />
               </Link>
             </motion.div>
 
@@ -501,7 +501,7 @@ export default function Navbar() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <ShoppingBag size={22} className="text-gray-900" />
+              <ShoppingBag size={22} className="text-ink" />
               <AnimatePresence mode="wait">
                 {totalItems > 0 && (
                   <motion.span
@@ -527,7 +527,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.9 }}
               transition={{ duration: 0.2 }}
             >
-              <Menu size={24} className="text-gray-900" />
+              <Menu size={24} className="text-ink" />
             </motion.button>
           </div>
         </div>

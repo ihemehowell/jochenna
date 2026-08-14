@@ -9,23 +9,23 @@ type ErrorProps = {
 
 export default function RootError({ error, reset }: ErrorProps) {
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-16 md:px-8">
-      <div className="mx-auto max-w-2xl rounded-lg border border-gray-200 bg-white p-8 text-center">
-        <p className="mb-3 text-xs uppercase tracking-[0.3em] text-gray-500">Something Went Wrong</p>
-        <h1 className="mb-3 text-3xl font-semibold text-gray-900">We hit an unexpected error</h1>
-        <p className="mb-8 text-gray-600">
+    <main className="min-h-screen bg-paper px-4 py-16 md:px-8">
+      <div className="mx-auto max-w-2xl rounded-lg border border-hairline bg-white p-8 text-center">
+        <p className="mb-3 text-xs uppercase tracking-[0.3em] text-ink-soft">Something Went Wrong</p>
+        <h1 className="mb-3 text-3xl font-semibold text-ink">We hit an unexpected error</h1>
+        <p className="mb-8 text-ink-soft">
           {error.message || "Please try again or return to the shop."}
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
           <button
             onClick={reset}
-            className="rounded bg-gray-900 px-5 py-2 text-white transition hover:bg-gray-800"
+            className="rounded bg-ink px-5 py-2 text-white transition hover:bg-ink"
           >
             Try again
           </button>
           <Link
             href="/shop"
-            className="rounded border border-gray-300 px-5 py-2 text-gray-700 transition hover:bg-gray-100"
+            className="rounded border border-hairline px-5 py-2 text-ink transition hover:bg-paper"
           >
             Go to shop
           </Link>

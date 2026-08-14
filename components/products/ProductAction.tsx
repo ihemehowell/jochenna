@@ -44,7 +44,7 @@ export default function ProductActions({
       {/* Sizes */}
       {hasSizes ? (
         <div>
-          <p className="font-medium mb-4 text-gray-800">
+          <p className="font-medium mb-4 text-ink">
             Select Size
           </p>
 
@@ -57,8 +57,8 @@ export default function ProductActions({
                 }
                 className={`border px-5 py-3 transition ${
                   selectedSize === size
-                    ? "bg-gray-800 text-white border-black"
-                    : "border-gray-300 hover:border-gray-900 text-gray-500"
+                    ? "bg-ink text-white border-black"
+                    : "border-hairline hover:border-ink text-ink-soft"
                 }`}
               >
                 {size}
@@ -67,7 +67,7 @@ export default function ProductActions({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+        <div className="rounded-xl border border-dashed border-hairline bg-paper px-4 py-3 text-sm text-ink-soft">
           No size selection needed for this product.
         </div>
       )}
@@ -76,7 +76,7 @@ export default function ProductActions({
       <button
         onClick={handleAddToCart}
         disabled={product.stock === 0 || (hasSizes && !selectedSize) || isAdding}
-        className="w-full bg-gray-800 rounded text-white py-4 hover:bg-gray-600 transition disabled:bg-gray-400"
+        className="w-full bg-ink rounded text-white py-4 hover:bg-ink-soft transition disabled:bg-hairline"
       >
         {product.stock === 0
           ? "Out of Stock"

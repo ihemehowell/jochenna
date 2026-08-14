@@ -14,7 +14,7 @@ export default function Skeleton({
   if (variant === "pulse") {
     return (
       <motion.div
-        className={`bg-gray-200 rounded ${className}`}
+        className={`bg-hairline rounded ${className}`}
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{
           duration: 2,
@@ -27,7 +27,7 @@ export default function Skeleton({
 
   return (
     <div
-      className={`bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 rounded ${className}`}
+      className={`bg-gradient-to-r from-paper via-paper to-paper rounded ${className}`}
       style={{
         backgroundSize: "200% 100%",
         animation: "shimmer 2s infinite",

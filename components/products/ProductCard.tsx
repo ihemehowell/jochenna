@@ -110,7 +110,7 @@ export default function ProductCard({
     >
       {/* Product Image */}
       <motion.div
-        className="relative overflow-hidden bg-gray-100 rounded-lg flex-1"
+        className="relative overflow-hidden bg-paper rounded-lg flex-1"
         variants={imageVariants}
         initial="rest"
         whileHover="hover"
@@ -145,7 +145,7 @@ export default function ProductCard({
                   ? "bg-emerald-100 text-emerald-700"
                   : product.condition === "gently-used"
                   ? "bg-amber-100 text-amber-800"
-                  : "bg-gray-100 text-gray-700")
+                  : "bg-paper text-ink")
               }
             >
               {conditionLabelMap[product.condition]}
@@ -163,7 +163,7 @@ export default function ProductCard({
         >
           <Heart
             size={20}
-            className={isInWishlist ? "fill-red-500 text-red-500" : "text-gray-900"}
+            className={isInWishlist ? "fill-red-500 text-red-500" : "text-ink"}
           />
         </motion.button>
 
@@ -173,7 +173,7 @@ export default function ProductCard({
             type="button"
             onClick={handleQuickAdd}
             disabled={product.stock === 0}
-            className="flex-1 bg-gray-900 rounded-lg text-white px-4 py-2 text-sm font-medium transition hover:bg-gray-800 disabled:bg-gray-500 disabled:cursor-not-allowed sm:rounded-full sm:py-3"
+            className="flex-1 bg-ink rounded-lg text-white px-4 py-2 text-sm font-medium transition hover:bg-ink disabled:bg-ink-soft disabled:cursor-not-allowed sm:rounded-full sm:py-3"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.95 }}
             aria-label={`Add ${product.name} to cart`}
@@ -184,7 +184,7 @@ export default function ProductCard({
           <Link href={`/product/${product.id}`} className="flex-1">
             <motion.button
               type="button"
-              className="w-full bg-white rounded-lg text-gray-900 px-4 py-2 text-sm font-medium transition hover:bg-gray-50 sm:rounded-full sm:py-3"
+              className="w-full bg-white rounded-lg text-ink px-4 py-2 text-sm font-medium transition hover:bg-paper sm:rounded-full sm:py-3"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -202,16 +202,16 @@ export default function ProductCard({
         transition={{ delay: index * 0.1 + 0.2, duration: 0.5 }}
         viewport={{ once: true, amount: 0.3 }}
       >
-        <p className="text-xs text-gray-500 uppercase tracking-wide sm:text-sm">
+        <p className="text-xs text-ink-soft uppercase tracking-wide sm:text-sm">
           {categoryLabel}
         </p>
 
-        <h3 className="font-semibold text-sm text-gray-900 line-clamp-2 sm:text-base sm:font-medium">
+        <h3 className="font-semibold text-sm text-ink line-clamp-2 sm:text-base sm:font-medium">
           {product.name}
         </h3>
 
         <div className="flex items-center justify-between pt-1">
-          <p className="font-bold text-base text-gray-900 sm:text-lg">
+          <p className="font-bold text-base text-ink sm:text-lg">
             ₦{product.price.toLocaleString()}
           </p>
           {product.stock === 0 && (

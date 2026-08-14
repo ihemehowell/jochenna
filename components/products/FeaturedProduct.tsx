@@ -28,9 +28,9 @@ export default function FeaturedProducts({
 
 
   viewAllHref = "/shop",
-  sectionClassName = "py-10 px-3 md:px-6 bg-gray-900",
+  sectionClassName = "py-10 px-3 md:px-6 bg-ink",
 
-  descriptionClassName = "text-gray-300",
+  descriptionClassName = "text-ink-soft",
   showRankingBadges = false,
   loadingLabel = "Loading featured products...",
   emptyLabel = "No products found.",
@@ -82,7 +82,7 @@ export default function FeaturedProducts({
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
-              <div className="inline-block w-8 h-8 border-4 border-gray-700 border-t-orange-500 rounded-full animate-spin mb-4" />
+              <div className="inline-block w-8 h-8 border-4 border-ink border-t-orange-500 rounded-full animate-spin mb-4" />
               <p className={descriptionClassName}>{loadingLabel}</p>
             </div>
           </div>
@@ -130,8 +130,8 @@ export default function FeaturedProducts({
                     onClick={() => scrollToIndex(i)}
                     className={`rounded-full transition-all duration-300 ${
                       i === activeDot
-                        ? "w-8 h-3 bg-orange-500"
-                        : "w-3 h-3 bg-gray-600 hover:bg-gray-400"
+                        ? "w-8 h-3 bg-marigold"
+                        : "w-3 h-3 bg-ink-soft hover:bg-hairline"
                     }`}
                   />
                 ))}

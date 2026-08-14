@@ -125,7 +125,7 @@ export default function CartDrawer() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
             >
-              <h2 className="text-lg font-semibold text-gray-900 sm:text-xl">
+              <h2 className="text-lg font-semibold text-ink sm:text-xl">
                 Shopping Cart
               </h2>
 
@@ -133,10 +133,10 @@ export default function CartDrawer() {
                 onClick={closeCart}
                 whileHover={{ rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
-                className="rounded-full p-2 hover:bg-gray-100"
+                className="rounded-full p-2 hover:bg-paper"
                 aria-label="Close cart"
               >
-                <X className="text-gray-900" size={24} />
+                <X className="text-ink" size={24} />
               </motion.button>
             </motion.div>
 
@@ -150,10 +150,10 @@ export default function CartDrawer() {
                   transition={{ delay: 0.2, duration: 0.3 }}
                 >
                   <div className="text-center">
-                    <p className="text-gray-500 text-lg">
+                    <p className="text-ink-soft text-lg">
                       Your cart is empty.
                     </p>
-                    <p className="text-sm text-gray-400 mt-2">
+                    <p className="text-sm text-ink-soft mt-2">
                       Add items to get started!
                     </p>
                   </div>
@@ -167,14 +167,14 @@ export default function CartDrawer() {
                     {cart.map((item, i) => (
                       <motion.div
                         key={`${item.id}-${item.selectedSize}`}
-                        className="flex gap-3 p-3 rounded-lg border border-gray-200 hover:border-gray-300 transition sm:gap-4 sm:p-4"
+                        className="flex gap-3 p-3 rounded-lg border border-hairline hover:border-hairline transition sm:gap-4 sm:p-4"
                         variants={itemVariants}
                         custom={i}
                         layout
                         exit={{ opacity: 0, x: 20 }}
                       >
                         
-                        <div className="relative w-20 h-24 bg-gray-100 overflow-hidden rounded shrink-0 sm:w-24 sm:h-28">
+                        <div className="relative w-20 h-24 bg-paper overflow-hidden rounded shrink-0 sm:w-24 sm:h-28">
                           <Image
                             src={item.images?.[0] || IMAGE_PLACEHOLDER}
                             alt={item.name}
@@ -184,20 +184,20 @@ export default function CartDrawer() {
                         </div>
 
                         <div className="flex-1 flex flex-col">
-                          <h3 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2">
+                          <h3 className="font-medium text-ink text-sm sm:text-base line-clamp-2">
                             {item.name}
                           </h3>
 
-                          <p className="text-gray-500 text-sm mt-1">
+                          <p className="text-ink-soft text-sm mt-1">
                             ₦{item.price.toLocaleString()}
                           </p>
 
                           {item.selectedSize ? (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-ink-soft mt-1">
                               Size: <span className="font-medium">{item.selectedSize}</span>
                             </p>
                           ) : (
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-ink-soft mt-1">
                               No size selection needed
                             </p>
                           )}
@@ -208,7 +208,7 @@ export default function CartDrawer() {
                               onClick={() =>
                                 handleDecrease(item.id, item.selectedSize)
                               }
-                              className="h-8 w-8 rounded border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition active:bg-gray-200"
+                              className="h-8 w-8 rounded border border-hairline flex items-center justify-center text-ink-soft hover:bg-paper transition active:bg-hairline"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               aria-label="Decrease quantity"
@@ -216,13 +216,13 @@ export default function CartDrawer() {
                               <Minus size={16} />
                             </motion.button>
 
-                            <span className="w-8 text-center font-medium text-gray-900">{item.quantity}</span>
+                            <span className="w-8 text-center font-medium text-ink">{item.quantity}</span>
 
                             <motion.button
                               onClick={() =>
                                 handleIncrease(item.id, item.selectedSize)
                               }
-                              className="h-8 w-8 rounded border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition active:bg-gray-200"
+                              className="h-8 w-8 rounded border border-hairline flex items-center justify-center text-ink-soft hover:bg-paper transition active:bg-hairline"
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               aria-label="Increase quantity"
@@ -237,7 +237,7 @@ export default function CartDrawer() {
                           onClick={() =>
                             handleRemove(item.id, item.selectedSize)
                           }
-                          className="text-gray-400 hover:text-red-500 transition p-1 self-start shrink-0"
+                          className="text-ink-soft hover:text-red-500 transition p-1 self-start shrink-0"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           aria-label={`Remove ${item.name}`}
@@ -261,9 +261,9 @@ export default function CartDrawer() {
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <p className="text-gray-600 text-sm">Subtotal</p>
+                    <p className="text-ink-soft text-sm">Subtotal</p>
                     <motion.p
-                      className="font-semibold text-gray-900"
+                      className="font-semibold text-ink"
                       key={totalPrice}
                       initial={{ scale: 1.1 }}
                       animate={{ scale: 1 }}
@@ -272,7 +272,7 @@ export default function CartDrawer() {
                       ₦{totalPrice.toLocaleString()}
                     </motion.p>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-ink-soft">
                     Shipping calculated at checkout
                   </p>
                 </div>
@@ -280,7 +280,7 @@ export default function CartDrawer() {
                 <Link href="/checkout" className="block">
                   <motion.button
                     onClick={closeCart}
-                    className="w-full bg-gray-900 rounded-lg text-white font-medium py-3 hover:bg-gray-800 transition sm:py-4"
+                    className="w-full bg-ink rounded-lg text-white font-medium py-3 hover:bg-ink transition sm:py-4"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -290,7 +290,7 @@ export default function CartDrawer() {
 
                 <motion.button
                   onClick={closeCart}
-                  className="w-full border border-gray-300 rounded-lg text-gray-900 font-medium py-2 hover:bg-gray-50 transition"
+                  className="w-full border border-hairline rounded-lg text-ink font-medium py-2 hover:bg-paper transition"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

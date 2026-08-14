@@ -65,7 +65,7 @@ export default function HomePage() {
             </motion.div>
 
             <motion.h1
-              className="max-w-4xl text-4xl text-center font-semibold leading-tight text-gray-900 sm:text-5xl md:text-7xl"
+              className="max-w-4xl text-4xl text-center font-semibold leading-tight text-ink sm:text-5xl md:text-7xl"
               custom={1}
               variants={heroVariants}
             >
@@ -73,7 +73,7 @@ export default function HomePage() {
             </motion.h1>
 
             <motion.p
-              className="mt-6 max-w-2xl text-lg leading-8 text-gray-600 mx-auto text-center"
+              className="mt-6 max-w-2xl text-lg leading-8 text-ink-soft mx-auto text-center"
               custom={2}
               variants={heroVariants}
             >
@@ -87,13 +87,13 @@ export default function HomePage() {
               className="mt-8 flex flex-col gap-4 sm:flex-row mx-auto justify-center"
             >
               <Link href="/shop">
-                <button className="w-full rounded-full bg-gray-900 px-8 py-4 text-sm font-semibold text-white transition hover:bg-gray-800 sm:w-auto">
+                <button className="w-full rounded-full bg-ink px-8 py-4 text-sm font-semibold text-white transition hover:bg-ink sm:w-auto">
                   Browse shop
                 </button>
               </Link>
 
               <Link href="/shop">
-                <button className="w-full rounded-full border border-gray-300 bg-white px-8 py-4 text-sm font-semibold text-gray-900 transition hover:border-gray-900 sm:w-auto">
+                <button className="w-full rounded-full border border-hairline bg-white px-8 py-4 text-sm font-semibold text-ink transition hover:border-ink sm:w-auto">
                   Shop by age
                 </button>
               </Link>
@@ -112,7 +112,7 @@ export default function HomePage() {
               ].map((item) => (
                 <span
                   key={item}
-                  className="rounded-full border border-white bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm"
+                  className="rounded-full border border-white bg-white px-4 py-2 text-sm font-medium text-ink shadow-sm"
                 >
                   {item}
                 </span>
@@ -127,14 +127,14 @@ export default function HomePage() {
             animate="visible"
           >
             {/* <div className="rounded-[2rem] border border-white/80 bg-white p-5 shadow-2xl">
-              <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 p-6 text-white">
-                <p className="text-xs uppercase tracking-[0.3em] text-gray-300">
+              <div className="overflow-hidden rounded-[1.5rem] bg-gradient-to-br from-ink via-ink to-denim p-6 text-white">
+                <p className="text-xs uppercase tracking-[0.3em] text-ink-soft">
                   Shop smarter
                 </p>
                 <h2 className="mt-4 text-3xl font-semibold leading-tight">
                   Built for clarity, trust, and quick decisions.
                 </h2>
-                <p className="mt-4 text-sm leading-7 text-gray-300">
+                <p className="mt-4 text-sm leading-7 text-ink-soft">
                   Parents can narrow down items by age, condition, and category without
                   digging through clutter.
                 </p>
@@ -169,15 +169,15 @@ export default function HomePage() {
 
 
       {/* Featured Products */}
-      <section className="py-14 border-t border-slate-100 bg-gray-900">
+      <section className="py-14 border-t border-hairline bg-ink">
         <div className="container mx-auto px-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between ">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-gray-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.26em] text-ink-soft">
                 Featured picks
               </p>
               <h2 className="text-4xl font-bold text-white mb-4">New Arrivals</h2>
-              <p className="text-lg text-gray-300">
+              <p className="text-lg text-ink-soft">
                 Hand-picked treasures for your growing family.
               </p>
             </div>
@@ -197,9 +197,9 @@ export default function HomePage() {
         eyebrow="Best sellers"
         title="Most Loved Finds"
         description="Popular picks that move quickly for growing kids and busy parents."
-        sectionClassName="py-24 border-t border-slate-100 bg-white"
-        titleClassName="text-gray-900"
-        descriptionClassName="text-gray-600"
+        sectionClassName="py-24 border-t border-hairline bg-white"
+        titleClassName="text-ink"
+        descriptionClassName="text-ink-soft"
         showRankingBadges
         loadingLabel="Loading best sellers..."
         emptyLabel="No best sellers available yet."
@@ -209,22 +209,22 @@ export default function HomePage() {
       {/* Call to Action */}
       <section className="px-4 py-16 md:px-8">
         <div className="mx-auto max-w-7xl">
-          <div className="rounded-4xl bg-linear-to-r from-slate-900 via-gray-900 to-slate-800 px-6 py-12 text-white md:px-10">
+          <div className="rounded-4xl bg-linear-to-r from-ink via-ink to-ink px-6 py-12 text-white md:px-10">
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-gray-400">
+                <p className="text-xs font-semibold uppercase tracking-[0.26em] text-ink-soft">
                   Ready to shop?
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold md:text-4xl">
                   Start with the right category and find items faster.
                 </h2>
-                <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-300">
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-ink-soft">
                   Browse children’s clothes, toys, baby essentials, and shoes with trust-focused filters and clean product labels.
                 </p>
               </div>
 
               <Link href="/shop">
-                <button className="w-full rounded-full bg-white px-8 py-4 text-sm font-semibold text-gray-900 transition hover:bg-gray-100 lg:w-auto">
+                <button className="w-full rounded-full bg-white px-8 py-4 text-sm font-semibold text-ink transition hover:bg-paper lg:w-auto">
                   Open Shop
                 </button>
               </Link>

@@ -59,10 +59,10 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-gray-900 text-gray-100">
+    <footer className="bg-ink text-paper">
       {/* Newsletter Section */}
       <motion.section
-        className="border-b border-gray-800 bg-linear-to-r from-gray-900 to-gray-800 px-4 py-12 md:px-8 md:py-16"
+        className="border-b border-ink bg-linear-to-r from-ink to-ink px-4 py-12 md:px-8 md:py-16"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
@@ -74,7 +74,7 @@ export default function Footer() {
               <h3 className="text-2xl font-bold md:text-3xl">
                 Stay Updated
               </h3>
-              <p className="mt-2 text-gray-400">
+              <p className="mt-2 text-ink-soft">
                 Get new arrivals and exclusive deals delivered to your inbox.
               </p>
             </motion.div>
@@ -86,9 +86,9 @@ export default function Footer() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 rounded-full border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-white placeholder-gray-500 outline-none transition focus:border-gray-600 focus:bg-gray-700"
+                className="flex-1 rounded-full border border-ink bg-ink px-4 py-3 text-sm text-white placeholder-ink-soft outline-none transition focus:border-ink-soft focus:bg-ink"
               />
-              <button className="rounded-full bg-white px-6 py-3 font-semibold text-gray-900 transition hover:bg-gray-100 whitespace-nowrap">
+              <button className="rounded-full bg-white px-6 py-3 font-semibold text-ink transition hover:bg-paper whitespace-nowrap">
                 Subscribe
               </button>
             </motion.form>
@@ -111,7 +111,7 @@ export default function Footer() {
               <Link href="/" className="text-2xl font-bold">
                 Jochenna
               </Link>
-              <p className="mt-4 text-sm text-gray-400">
+              <p className="mt-4 text-sm text-ink-soft">
                 Sustainable children&apos;s thrift marketplace for parents and caregivers.
               </p>
               <div className="mt-6 flex gap-3">
@@ -119,7 +119,7 @@ export default function Footer() {
                   href="#"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 transition hover:bg-gray-700"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-ink transition hover:bg-ink"
                   aria-label="Twitter"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ export default function Footer() {
                   href="#"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 transition hover:bg-gray-700"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-ink transition hover:bg-ink"
                   aria-label="Instagram"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -141,7 +141,7 @@ export default function Footer() {
                   href="#"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 transition hover:bg-gray-700"
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-ink transition hover:bg-ink"
                   aria-label="Facebook"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -164,7 +164,7 @@ export default function Footer() {
                     <li key={`${link.href}-${link.label}`}>
                       <Link
                         href={link.href}
-                        className="text-sm text-gray-400 transition hover:text-white"
+                        className="text-sm text-ink-soft transition hover:text-white"
                       >
                         {link.label}
                       </Link>
@@ -184,7 +184,7 @@ export default function Footer() {
                 <li>
                   <a
                     href="mailto:support@jochenna.com"
-                    className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-white"
+                    className="inline-flex items-center gap-2 text-sm text-ink-soft transition hover:text-white"
                   >
                     <Mail size={16} />
                     support@jochenna.com
@@ -193,13 +193,13 @@ export default function Footer() {
                 <li>
                   <a
                     href="tel:+234800000000"
-                    className="inline-flex items-center gap-2 text-sm text-gray-400 transition hover:text-white"
+                    className="inline-flex items-center gap-2 text-sm text-ink-soft transition hover:text-white"
                   >
                     <Phone size={16} />
                     +234 800 000 0000
                   </a>
                 </li>
-                <li className="inline-flex items-start gap-2 text-sm text-gray-400">
+                <li className="inline-flex items-start gap-2 text-sm text-ink-soft">
                   <MapPin size={16} className="shrink-0 mt-0.5" />
                   <span>Lagos, Nigeria</span>
                 </li>
@@ -210,28 +210,28 @@ export default function Footer() {
           {/* Footer Bottom */}
           <motion.div
             variants={itemVariants}
-            className="mt-12 border-t border-gray-800 pt-8"
+            className="mt-12 border-t border-ink pt-8"
           >
             <div className="grid gap-4 sm:grid-cols-2 md:flex md:items-center md:justify-between">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink-soft">
                 © {currentYear} Jochenna. All rights reserved.
               </p>
               <div className="flex flex-wrap gap-6">
                 <Link
                   href="#"
-                  className="text-sm text-gray-400 transition hover:text-white"
+                  className="text-sm text-ink-soft transition hover:text-white"
                 >
                   Privacy Policy
                 </Link>
                 <Link
                   href="#"
-                  className="text-sm text-gray-400 transition hover:text-white"
+                  className="text-sm text-ink-soft transition hover:text-white"
                 >
                   Terms of Service
                 </Link>
                 <Link
                   href="#"
-                  className="text-sm text-gray-400 transition hover:text-white"
+                  className="text-sm text-ink-soft transition hover:text-white"
                 >
                   Cookies
                 </Link>

@@ -32,7 +32,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <main className="px-4 md:px-8 py-10 bg-gray-50">
+    <main className="px-4 md:px-8 py-10 bg-paper">
       <motion.div
         className="max-w-7xl mx-auto"
         initial="hidden"
@@ -41,12 +41,12 @@ export default function WishlistPage() {
       >
         {/* Header */}
         <motion.div className="mb-12" variants={itemVariants}>
-          <p className="uppercase tracking-[0.3em] text-sm text-gray-500 mb-3 flex items-center gap-2">
+          <p className="uppercase tracking-[0.3em] text-sm text-ink-soft mb-3 flex items-center gap-2">
             <Heart size={16} />
             My Wishlist
           </p>
 
-          <h1 className="text-4xl md:text-5xl font-semibold text-gray-900">
+          <h1 className="text-4xl md:text-5xl font-semibold text-ink">
             Saved Items
           </h1>
         </motion.div>
@@ -54,14 +54,14 @@ export default function WishlistPage() {
         {/* Content */}
         {wishlist.length === 0 ? (
           <motion.div
-            className="h-96 flex flex-col items-center justify-center border border-dashed border-gray-300 rounded"
+            className="h-96 flex flex-col items-center justify-center border border-dashed border-hairline rounded"
             variants={itemVariants}
           >
-            <Heart size={48} className="text-gray-300 mb-4" />
-            <p className="text-gray-500 mb-6">Your wishlist is empty</p>
+            <Heart size={48} className="text-ink-soft mb-4" />
+            <p className="text-ink-soft mb-6">Your wishlist is empty</p>
             <Link href="/shop">
               <motion.button
-                className="flex items-center gap-2 bg-gray-900 text-white px-6 py-3 rounded hover:bg-gray-800 transition"
+                className="flex items-center gap-2 bg-ink text-white px-6 py-3 rounded hover:bg-ink transition"
                 whileHover={{ x: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -73,7 +73,7 @@ export default function WishlistPage() {
         ) : (
           <>
             <motion.p
-              className="text-gray-500 mb-8"
+              className="text-ink-soft mb-8"
               variants={itemVariants}
             >
               {wishlist.length} item{wishlist.length !== 1 ? "s" : ""} saved

@@ -1,20 +1,29 @@
 @import "tailwindcss";
 
-:root {
-  --background: #f1eee3;
-  --foreground: #2a2620;
-  --primary: #e3a73b;
-
+@theme {
   --color-paper: #f1eee3;
   --color-ink: #2a2620;
+  --color-ink-soft: #5f5a4d;
   --color-marigold: #e3a73b;
   --color-marigold-text: #99623a;
+  --color-denim-deep: #37536c;
   --color-denim: #4e6e8e;
   --color-denim-text: #2f4a63;
   --color-blush: #d98c86;
   --color-blush-text: #a4544e;
   --color-sage: #7c9473;
   --color-sage-text: #4f6549;
+  --color-hairline: #d8d2c2;
+
+  --font-display: var(--font-display), var(--font-body), sans-serif;
+  --font-body: var(--font-body), Arial, Helvetica, sans-serif;
+  --font-tag: var(--font-tag), ui-monospace, monospace;
+}
+
+:root {
+  --background: #f1eee3;
+  --foreground: #2a2620;
+  --primary: #e3a73b;
 
   --card: #ffffff;
   --border: #d8d2c2;
@@ -43,11 +52,6 @@ body {
 
 h1,
 h2,
-h3,
-.font-display {
+h3 {
   font-family: var(--font-display), var(--font-body), sans-serif;
-}
-
-.font-tag {
-  font-family: var(--font-tag), ui-monospace, monospace;
 }

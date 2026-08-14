@@ -22,7 +22,7 @@ export default function AddToCartButton({
         addToCart(product, defaultSize);
       }}
       disabled={disabled}
-      className="bg-gray-900 rounded text-white py-4 hover:bg-gray-800 transition disabled:bg-gray-400 w-full"
+      className="bg-ink rounded text-white py-4 hover:bg-ink transition disabled:bg-hairline w-full"
     >
       Add to Cart
     </button>

@@ -84,7 +84,7 @@ export default function ProductGallery({
   return (
     <div className="flex flex-col-reverse lg:flex-row gap-4" ref={galleryRef}>
       {/* Main Image */}
-      <div className="relative flex-1 bg-gray-100 overflow-hidden rounded-lg">
+      <div className="relative flex-1 bg-paper overflow-hidden rounded-lg">
         {/* Touch Area */}
         <div
           onTouchStart={handleTouchStart}
@@ -122,7 +122,7 @@ export default function ProductGallery({
               whileTap={{ scale: 0.9 }}
               aria-label="Previous image"
             >
-              <ChevronLeft size={20} className="text-gray-900" />
+              <ChevronLeft size={20} className="text-ink" />
             </motion.button>
 
             <motion.button
@@ -133,7 +133,7 @@ export default function ProductGallery({
               whileTap={{ scale: 0.9 }}
               aria-label="Next image"
             >
-              <ChevronRight size={20} className="text-gray-900" />
+              <ChevronRight size={20} className="text-ink" />
             </motion.button>
 
             {/* Image Counter */}

@@ -110,17 +110,17 @@ export default function ShopFilters({
   };
 
   const FilterSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="border-b border-gray-200 py-3 last:border-b-0">
+    <div className="border-b border-hairline py-3 last:border-b-0">
       <button
         onClick={() => setExpandedSection(expandedSection === title ? null : title)}
         className="flex w-full items-center justify-between py-1 text-left"
       >
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <h3 className="text-sm font-semibold text-ink">{title}</h3>
         <motion.div
           animate={{ rotate: expandedSection === title ? 180 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronDown size={16} className="text-gray-500" />
+          <ChevronDown size={16} className="text-ink-soft" />
         </motion.div>
       </button>
       <AnimatePresence>
@@ -143,7 +143,7 @@ export default function ShopFilters({
     <>
       {/* Search */}
       <div className="mb-4 space-y-2">
-        <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">
+        <label className="block text-xs font-semibold uppercase tracking-[0.2em] text-ink-soft">
           Search
         </label>
         <input
@@ -151,7 +151,7 @@ export default function ShopFilters({
           placeholder="Search toys, shoes..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-gray-900 focus:bg-white focus:ring-2 focus:ring-gray-900/5"
+          className="w-full rounded-xl border border-hairline bg-paper px-3 py-2 text-sm outline-none transition placeholder:text-ink-soft focus:border-ink focus:bg-white focus:ring-2 focus:ring-ink/5"
         />
       </div>
 
@@ -162,8 +162,8 @@ export default function ShopFilters({
             onClick={() => setFilters({ category: "all" })}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
               filters.category === "all"
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-ink text-white"
+                : "bg-paper text-ink hover:bg-hairline"
             }`}
           >
             All
@@ -174,8 +174,8 @@ export default function ShopFilters({
               onClick={() => setFilters({ category: category.key })}
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
                 filters.category === category.key
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-ink text-white"
+                  : "bg-paper text-ink hover:bg-hairline"
               }`}
             >
               {category.label}
@@ -191,8 +191,8 @@ export default function ShopFilters({
             onClick={() => setFilters({ ageGroup: "all" })}
             className={`rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
               filters.ageGroup === "all"
-                ? "border-gray-900 bg-gray-900 text-white"
-                : "border-gray-200 text-gray-700 hover:border-gray-400"
+                ? "border-ink bg-ink text-white"
+                : "border-hairline text-ink hover:border-hairline"
             }`}
           >
             All ages
@@ -203,8 +203,8 @@ export default function ShopFilters({
               onClick={() => setFilters({ ageGroup: age })}
               className={`rounded-lg border px-2.5 py-2 text-xs font-medium transition ${
                 filters.ageGroup === age
-                  ? "border-blue-600 bg-blue-50 text-blue-700"
-                  : "border-gray-200 text-gray-700 hover:border-gray-400"
+                  ? "border-denim bg-denim/10 text-denim-text"
+                  : "border-hairline text-ink hover:border-hairline"
               }`}
             >
               {ageLabelMap[age]}
@@ -220,8 +220,8 @@ export default function ShopFilters({
             onClick={() => setFilters({ condition: "all" })}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
               filters.condition === "all"
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-ink text-white"
+                : "bg-paper text-ink hover:bg-hairline"
             }`}
           >
             All
@@ -233,7 +233,7 @@ export default function ShopFilters({
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
                 filters.condition === condition
                   ? "bg-emerald-600 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  : "bg-paper text-ink hover:bg-hairline"
               }`}
             >
               {conditionLabelMap[condition]}
@@ -249,8 +249,8 @@ export default function ShopFilters({
             onClick={() => setFilters({ gender: "all" })}
             className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
               filters.gender === "all"
-                ? "bg-gray-900 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-ink text-white"
+                : "bg-paper text-ink hover:bg-hairline"
             }`}
           >
             All
@@ -261,8 +261,8 @@ export default function ShopFilters({
               onClick={() => setFilters({ gender })}
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition ${
                 filters.gender === gender
-                  ? "bg-gray-900 text-white"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                  ? "bg-ink text-white"
+                  : "bg-paper text-ink hover:bg-hairline"
               }`}
             >
               {genderLabelMap[gender]}
@@ -276,20 +276,20 @@ export default function ShopFilters({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block sticky top-6 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <aside className="hidden lg:block sticky top-6 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl border border-hairline bg-white p-4 shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-400">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-ink-soft">
               Filters
             </p>
-            <h2 className="mt-1 text-base font-semibold text-gray-900">
+            <h2 className="mt-1 text-base font-semibold text-ink">
               {activeCount > 0 ? `${activeCount} active` : "Compact search"}
             </h2>
           </div>
 
           <button
             onClick={() => setDesktopFiltersOpen((current) => !current)}
-            className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+            className="inline-flex items-center gap-1 rounded-full border border-hairline px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-hairline hover:bg-paper"
           >
             {desktopFiltersOpen ? "Collapse" : "Expand"}
             <motion.span
@@ -320,7 +320,7 @@ export default function ShopFilters({
               transition={{ duration: 0.2 }}
               className="overflow-hidden"
             >
-              <div className="mt-4 space-y-1.5 rounded-2xl bg-gray-50 p-3">
+              <div className="mt-4 space-y-1.5 rounded-2xl bg-paper p-3">
                 {FilterContent}
               </div>
             </motion.div>
@@ -332,7 +332,7 @@ export default function ShopFilters({
       <div className="lg:hidden">
         <motion.button
           onClick={() => setMobileFiltersOpen(true)}
-          className="fixed bottom-20 right-4 z-30 rounded-full bg-gray-900 p-4 text-white shadow-lg transition hover:bg-gray-800"
+          className="fixed bottom-20 right-4 z-30 rounded-full bg-ink p-4 text-white shadow-lg transition hover:bg-ink"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Open filters"
@@ -389,13 +389,13 @@ export default function ShopFilters({
                   <div className="sticky bottom-0 border-t bg-white px-6 py-4 space-y-3">
                     <button
                       onClick={resetFilters}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium text-gray-900 transition hover:bg-gray-50"
+                      className="w-full rounded-lg border border-hairline bg-white px-4 py-3 font-medium text-ink transition hover:bg-paper"
                     >
                       Clear All Filters
                     </button>
                     <button
                       onClick={() => setMobileFiltersOpen(false)}
-                      className="w-full rounded-lg bg-gray-900 px-4 py-3 font-medium text-white transition hover:bg-gray-800"
+                      className="w-full rounded-lg bg-ink px-4 py-3 font-medium text-white transition hover:bg-ink"
                     >
                       Apply Filters
                     </button>

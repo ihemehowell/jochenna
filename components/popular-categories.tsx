@@ -67,12 +67,12 @@ export default function PopularCategories({ categories }: Props) {
           viewport={{ once: true, amount: 0.4 }}
           variants={fadeUp}
         >
-          <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-ink md:text-4xl">
             Popular Categories
           </h2>
           <Link
             href="/shop"
-            className="flex items-center gap-1 text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors mt-2"
+            className="flex items-center gap-1 text-sm font-medium text-marigold-text hover:text-marigold-text transition-colors mt-2"
           >
             View all <span aria-hidden>›</span>
           </Link>
@@ -145,8 +145,8 @@ export default function PopularCategories({ categories }: Props) {
                 onClick={() => scrollToIndex(i)}
                 className={`rounded-full transition-all duration-300 ${
                   i === activeDot
-                    ? "w-8 h-3 bg-orange-500"
-                    : "w-3 h-3 bg-gray-300 hover:bg-gray-400"
+                    ? "w-8 h-3 bg-marigold"
+                    : "w-3 h-3 bg-hairline hover:bg-hairline"
                 }`}
               />
             ))}

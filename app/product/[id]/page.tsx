@@ -96,24 +96,24 @@ export default function ProductDetailsPage({
   };
 
   return (
-    <main className="px-4 md:px-8 py-10 bg-gray-50">
+    <main className="px-4 md:px-8 py-10 bg-paper">
       {loading ? (
         <div className="flex items-center justify-center h-96">
-          <p className="text-gray-500">Loading product...</p>
+          <p className="text-ink-soft">Loading product...</p>
         </div>
       ) : errorMessage ? (
         <div className="h-96 flex flex-col items-center justify-center gap-4 text-center">
-          <p className="text-gray-500">{errorMessage}</p>
+          <p className="text-ink-soft">{errorMessage}</p>
           <Link
             href="/shop"
-            className="rounded bg-gray-900 px-5 py-2 text-white hover:bg-gray-800 transition"
+            className="rounded bg-ink px-5 py-2 text-white hover:bg-ink transition"
           >
             Back to shop
           </Link>
         </div>
       ) : !product ? (
         <div className="flex items-center justify-center h-96">
-          <p className="text-gray-500">Product not found</p>
+          <p className="text-ink-soft">Product not found</p>
         </div>
       ) : (
       <motion.div
@@ -128,7 +128,7 @@ export default function ProductDetailsPage({
           
           {/* Image */}
           <motion.div
-            className="bg-gray-100"
+            className="bg-paper"
             variants={imageVariants}
           >
             <Image
@@ -146,19 +146,19 @@ export default function ProductDetailsPage({
             variants={itemVariants}
           >
             
-            <p className="uppercase tracking-[0.2em] text-sm text-gray-500 mb-4">
+            <p className="uppercase tracking-[0.2em] text-sm text-ink-soft mb-4">
               {product.category}
             </p>
 
-            <h1 className="text-4xl md:text-5xl font-semibold mb-6 leading-tight text-gray-900">
+            <h1 className="text-4xl md:text-5xl font-semibold mb-6 leading-tight text-ink">
               {product.name}
             </h1>
 
-            <p className="text-2xl font-semibold mb-8 text-gray-900">
+            <p className="text-2xl font-semibold mb-8 text-ink">
               ₦{product.price.toLocaleString()}
             </p>
 
-            <p className="text-gray-600 leading-relaxed mb-8">
+            <p className="text-ink-soft leading-relaxed mb-8">
               Carefully curated premium thrift fashion
               piece designed for modern streetwear and
               timeless styling.
@@ -210,7 +210,7 @@ export default function ProductDetailsPage({
               viewport={{ once: true, amount: 0.5 }}
               transition={{ duration: 0.6 }}
             >
-              <p className="uppercase tracking-[0.3em] text-sm text-gray-500 mb-3">
+              <p className="uppercase tracking-[0.3em] text-sm text-ink-soft mb-3">
                 You May Also Like
               </p>
 

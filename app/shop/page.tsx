@@ -137,13 +137,13 @@ export default function ShopPage() {
   const ageGroups: AgeGroup[] = ["0-6m", "6-12m", "1-2y", "3-5y", "6-10y"];
 
   return (
-    <main className="px-4 md:px-8 py-6 md:py-10 bg-gray-50 min-h-screen">
+    <main className="px-4 md:px-8 py-6 md:py-10 bg-paper min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 md:mb-12">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="uppercase tracking-[0.3em] text-xs md:text-sm text-gray-500 mb-2">
+              <p className="uppercase tracking-[0.3em] text-xs md:text-sm text-ink-soft mb-2">
                 Find items for my child quickly
               </p>
             </div>
@@ -153,11 +153,11 @@ export default function ShopPage() {
         {/* Sort bar + Active Filter Chips */}
         <div className="mb-4 md:mb-6 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm md:text-base text-gray-600">
+            <p className="text-sm md:text-base text-ink-soft">
               <span className="font-medium">{total}</span> items
             </p>
 
-            <label className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+            <label className="flex items-center gap-2 text-xs md:text-sm text-ink-soft">
               <span className="font-medium whitespace-nowrap">Sort</span>
               <span className="relative inline-flex min-w-40 md:min-w-55 items-center">
                 <select
@@ -171,7 +171,7 @@ export default function ShopPage() {
                         | "best-selling"
                     )
                   }
-                  className="w-full appearance-none rounded-lg md:rounded-full border border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3 pr-8 md:pr-10 text-xs md:text-sm font-medium text-gray-900 shadow-sm outline-none transition focus:border-gray-900 focus:ring-2 focus:ring-gray-900/10"
+                  className="w-full appearance-none rounded-lg md:rounded-full border border-hairline bg-white px-3 py-2 md:px-4 md:py-3 pr-8 md:pr-10 text-xs md:text-sm font-medium text-ink shadow-sm outline-none transition focus:border-ink focus:ring-2 focus:ring-ink/10"
                 >
                   <option value="featured">Featured</option>
                   <option value="best-selling">Best Selling</option>
@@ -180,7 +180,7 @@ export default function ShopPage() {
                 </select>
                 <ChevronDown
                   size={16}
-                  className="pointer-events-none absolute right-2 md:right-4 text-gray-500"
+                  className="pointer-events-none absolute right-2 md:right-4 text-ink-soft"
                 />
               </span>
             </label>
@@ -195,7 +195,7 @@ export default function ShopPage() {
             <div className="flex flex-wrap gap-2">
               {activeCategory !== "all" && (
                 <button
-                  className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-700 transition hover:bg-gray-200"
+                  className="rounded-full bg-paper px-3 py-1 text-xs text-ink transition hover:bg-hairline"
                   onClick={() =>
                     categoryParam
                       ? router.push("/shop")
@@ -225,7 +225,7 @@ export default function ShopPage() {
 
               {filters.ageGroup !== "all" && (
                 <button
-                  className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 transition hover:bg-blue-200"
+                  className="rounded-full bg-denim/15 px-3 py-1 text-xs text-denim-text transition hover:bg-denim/20"
                   onClick={() =>
                     setFilters((s) => ({ ...s, ageGroup: "all" }))
                   }
@@ -308,8 +308,8 @@ export default function ShopPage() {
                         }
                         className={`rounded-full px-3 py-1 text-xs transition ${
                           isActiveSubcategory
-                            ? "bg-gray-900 text-white"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                            ? "bg-ink text-white"
+                            : "bg-paper text-ink-soft hover:bg-hairline hover:text-ink"
                         }`}
                       >
                         {subcategory}
@@ -321,17 +321,17 @@ export default function ShopPage() {
 
             {/* Product Grid / States */}
             {loading ? (
-              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
+              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-hairline bg-white rounded-lg">
                 <div className="text-center">
-                  <div className="inline-block w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin mb-4" />
-                  <p className="text-gray-500">Loading products...</p>
+                  <div className="inline-block w-8 h-8 border-4 border-hairline border-t-gray-900 rounded-full animate-spin mb-4" />
+                  <p className="text-ink-soft">Loading products...</p>
                 </div>
               </div>
             ) : products.length === 0 ? (
-              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-gray-300 bg-white rounded-lg">
+              <div className="flex h-64 md:h-96 items-center justify-center border border-dashed border-hairline bg-white rounded-lg">
                 <div className="text-center">
-                  <p className="text-gray-500 mb-2">No products found.</p>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-ink-soft mb-2">No products found.</p>
+                  <p className="text-sm text-ink-soft">
                     Try adjusting your filters
                   </p>
                 </div>
@@ -348,8 +348,8 @@ export default function ShopPage() {
                 </div>
 
                 {totalPages > 1 && (
-                  <div className="mt-10 flex items-center justify-between border-t border-gray-200 pt-6">
-                    <p className="text-sm text-gray-500">
+                  <div className="mt-10 flex items-center justify-between border-t border-hairline pt-6">
+                    <p className="text-sm text-ink-soft">
                       Page {page} of {totalPages}
                     </p>
 
@@ -360,7 +360,7 @@ export default function ShopPage() {
                           setPage((prev) => Math.max(1, prev - 1))
                         }
                         disabled={page <= 1}
-                        className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded border border-hairline px-4 py-2 text-sm text-ink transition hover:bg-paper disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Previous
                       </button>
@@ -371,7 +371,7 @@ export default function ShopPage() {
                           setPage((prev) => Math.min(totalPages, prev + 1))
                         }
                         disabled={page >= totalPages}
-                        className="rounded bg-gray-900 px-4 py-2 text-sm text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded bg-ink px-4 py-2 text-sm text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Next
                       </button>
