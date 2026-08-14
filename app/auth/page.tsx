@@ -50,7 +50,7 @@ export default function AuthPage() {
 
   return (
     <main className="min-h-screen bg-paper px-4 py-8 sm:py-12 md:px-8">
-      <div className="mx-auto grid max-w-6xl gap-6 sm:gap-8 lg:grid-cols-[1.1fr_1fr]">
+      <div className="mx-auto flex justify-center   max-w-xl gap-6 sm:gap-8 ">
         <section className="rounded-2xl border border-hairline bg-white p-6 shadow-sm sm:p-8 sm:rounded-3xl">
           <p className="text-xs uppercase tracking-[0.28em] text-ink-soft">Account</p>
           <h1 className="mt-2 sm:mt-3 text-2xl sm:text-4xl font-semibold text-ink">Welcome to Jochenna</h1>
@@ -135,7 +135,7 @@ export default function AuthPage() {
           </form>
         </section>
 
-        <aside className="rounded-2xl sm:rounded-3xl border border-hairline bg-linear-to-br from-ink to-ink p-6 text-white shadow-sm sm:p-8">
+        {/* <aside className="rounded-2xl sm:rounded-3xl border border-hairline bg-linear-to-br from-ink to-ink p-6 text-white shadow-sm sm:p-8">
           <p className="text-xs uppercase tracking-[0.28em] text-ink-soft">Status</p>
           {user ? (
             <>
@@ -159,7 +159,7 @@ export default function AuthPage() {
               </ul>
             </>
           )}
-        </aside>
+        </aside> */}
       </div>
     </main>
   );
