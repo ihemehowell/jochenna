@@ -624,6 +624,63 @@ export async function deleteProductAdmin(productId: string, token?: string): Pro
   }
 }
 
+export interface UploadedImage {
+  url: string;
+  publicId: string;
+}
+
+export async function uploadProductImages(
+  token: string | undefined,
+  files: File[]
+): Promise<{ ok: boolean; images: UploadedImage[]; message?: string }> {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("images", file));
+
+    const response = await fetch(buildApiUrl("/api/uploads/products"), {
+      method: "POST",
+      headers: buildAuthHeaders(token),
+      body: formData,
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        images: [],
+        message: data?.message || `Upload failed: ${response.statusText}`,
+      };
+    }
+
+    return { ok: true, images: (data?.images as UploadedImage[]) || [] };
+  } catch (error) {
+    logApiEvent("error", "Error uploading product images.", error);
+    return { ok: false, images: [], message: "Upload failed. Please try again." };
+  }
+}
+
+export async function deleteProductImage(
+  token: string | undefined,
+  publicId: string
+): Promise<boolean> {
+  try {
+    const response = await fetch(buildApiUrl("/api/uploads/products"), {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildAuthHeaders(token),
+      },
+      body: JSON.stringify({ publicId }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    logApiEvent("error", "Error deleting product image.", error);
+    return false;
+  }
+}
+
 export async function seedProducts(): Promise<Product[]> {
   try {
     const response = await fetch(buildApiUrl("/api/products/seed"), {

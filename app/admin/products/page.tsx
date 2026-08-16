@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Product, ProductCondition, AgeGroup } from "@/lib/types";
-import { getProducts, createProductAdmin, updateProductAdmin, deleteProductAdmin } from "@/lib/api";
+import { getProducts, createProductAdmin, updateProductAdmin, deleteProductAdmin, uploadProductImages } from "@/lib/api";
 import { useAuthStore } from "@/shore/authStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
-import { X, Plus, Edit2, Trash2 } from "lucide-react";
+import { X, Plus, Edit2, Trash2, UploadCloud, Loader2 } from "lucide-react";
 
 const PRODUCT_CONDITIONS: ProductCondition[] = ["like-new", "gently-used", "used"];
 const AGE_GROUPS: AgeGroup[] = ["0-6m", "6-12m", "1-2y", "3-5y", "6-10y"];
 const GENDER_OPTIONS = ["boys", "girls", "unisex"];
+const MAX_UPLOAD_FILES = 6;
+const MAX_FILE_SIZE_MB = 5;
+const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 type FormData = Omit<Product, "id">;
 
@@ -40,6 +43,9 @@ export default function AdminProductsPage() {
   const [imageInput, setImageInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Role guard
   useEffect(() => {
@@ -64,6 +70,7 @@ export default function AdminProductsPage() {
     setEditingId(null);
     setFormData(emptyForm);
     setImageInput("");
+    setUploadError(null);
     setShowModal(true);
   };
 
@@ -81,6 +88,7 @@ export default function AdminProductsPage() {
       description: product.description || "",
     });
     setImageInput("");
+    setUploadError(null);
     setShowModal(true);
   };
 
@@ -99,6 +107,50 @@ export default function AdminProductsPage() {
       ...formData,
       images: formData.images.filter((_, i) => i !== index),
     });
+  };
+
+  const handleFileSelect = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    setUploadError(null);
+
+    const files = Array.from(fileList);
+    const remainingSlots = MAX_UPLOAD_FILES - formData.images.length;
+
+    if (remainingSlots <= 0) {
+      setUploadError(`You can only add up to ${MAX_UPLOAD_FILES} images per product.`);
+      return;
+    }
+
+    const filesToUpload = files.slice(0, remainingSlots);
+    const invalidFile = filesToUpload.find(
+      (file) => !ALLOWED_MIME_TYPES.has(file.type) || file.size > MAX_FILE_SIZE_MB * 1024 * 1024
+    );
+
+    if (invalidFile) {
+      setUploadError(
+        `${invalidFile.name}: only JPG, PNG, WEBP, or GIF under ${MAX_FILE_SIZE_MB}MB are allowed.`
+      );
+      return;
+    }
+
+    setUploading(true);
+    const result = await uploadProductImages(token ?? undefined, filesToUpload);
+    setUploading(false);
+
+    if (!result.ok) {
+      setUploadError(result.message || "Upload failed. Please try again.");
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      images: [...prev.images, ...result.images.map((img) => img.url)],
+    }));
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const handleToggleAgeGroup = (ag: AgeGroup) => {
@@ -419,44 +471,101 @@ export default function AdminProductsPage() {
                 {/* Images */}
                 <div>
                   <label className="block text-sm font-medium text-ink mb-2">
-                    Images * (at least one)
+                    Images * (at least one, up to {MAX_UPLOAD_FILES})
                   </label>
-                  <div className="flex gap-2 mb-3">
-                    <input
-                      type="text"
-                      value={imageInput}
-                      onChange={(e) => setImageInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleAddImage();
-                        }
-                      }}
-                      className="flex-1 px-4 py-2 border border-hairline rounded-lg focus:ring-2 focus:ring-denim focus:border-transparent"
-                      placeholder="Enter image URL"
-                    />
-                    <button
-                      onClick={handleAddImage}
-                      className="bg-denim text-white px-4 py-2 rounded-lg hover:bg-denim-deep transition-colors font-medium"
-                    >
-                      Add
-                    </button>
-                  </div>
-                  <div className="space-y-2">
-                    {formData.images.map((img, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center justify-between bg-paper p-3 rounded-lg"
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleFileSelect(e.target.files)}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || formData.images.length >= MAX_UPLOAD_FILES}
+                    className="w-full flex flex-col items-center justify-center gap-2 border-2 border-dashed border-hairline rounded-lg py-6 mb-3 text-ink-soft hover:border-denim hover:text-denim-text transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-hairline disabled:hover:text-ink-soft"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 size={22} className="animate-spin" />
+                        <span className="text-sm font-medium">Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UploadCloud size={22} />
+                        <span className="text-sm font-medium">
+                          Click to upload images from your device
+                        </span>
+                        <span className="text-xs text-ink-soft">
+                          JPG, PNG, WEBP, or GIF — up to {MAX_FILE_SIZE_MB}MB each
+                        </span>
+                      </>
+                    )}
+                  </button>
+
+                  {uploadError && (
+                    <p className="text-sm text-red-600 mb-3">{uploadError}</p>
+                  )}
+
+                  <details className="mb-3">
+                    <summary className="text-sm text-ink-soft cursor-pointer hover:text-ink">
+                      Or add an image by URL instead
+                    </summary>
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        value={imageInput}
+                        onChange={(e) => setImageInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddImage();
+                          }
+                        }}
+                        className="flex-1 px-4 py-2 border border-hairline rounded-lg focus:ring-2 focus:ring-denim focus:border-transparent"
+                        placeholder="Enter image URL"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddImage}
+                        className="bg-denim text-white px-4 py-2 rounded-lg hover:bg-denim-deep transition-colors font-medium"
                       >
-                        <span className="text-sm text-ink truncate">{img}</span>
-                        <button
-                          onClick={() => handleRemoveImage(idx)}
-                          className="text-red-600 hover:text-red-700 transition-colors"
+                        Add
+                      </button>
+                    </div>
+                  </details>
+
+                  {formData.images.length > 0 && (
+                    <div className="grid grid-cols-3 gap-3">
+                      {formData.images.map((img, idx) => (
+                        <div
+                          key={`${img}-${idx}`}
+                          className="relative group aspect-square rounded-lg overflow-hidden border border-hairline bg-paper"
                         >
-                          <X size={18} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                          <Image
+                            src={img}
+                            alt={`Product image ${idx + 1}`}
+                            fill
+                            sizes="150px"
+                            className="object-cover"
+                            unoptimized
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(idx)}
+                            className="absolute top-1 right-1 bg-ink/70 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            aria-label="Remove image"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Description */}
