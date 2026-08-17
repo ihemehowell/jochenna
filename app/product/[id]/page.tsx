@@ -11,6 +11,7 @@ import type { Product } from "@/lib/types";
 import ProductCard from "@/components/products/ProductCard";
 // import AddToCartButton from "@/components/products/AddToCartButton";
 import ProductActions from "@/components/products/ProductAction";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 const FALLBACK_IMAGE =
   'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960"%3E%3Crect width="800" height="960" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="Arial, sans-serif" font-size="28"%3EImage unavailable%3C/text%3E%3C/svg%3E';
@@ -155,7 +156,7 @@ export default function ProductDetailsPage({
             </h1>
 
             <p className="text-2xl font-semibold mb-8 text-ink">
-              ₦{product.price.toLocaleString()}
+              {formatCurrency(product.price)}
             </p>
 
             <p className="text-ink-soft leading-relaxed mb-8">

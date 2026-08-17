@@ -10,6 +10,7 @@ import { initializePaystackPayment, verifyPaystackPayment } from "@/lib/api";
 import { useAuthStore } from "@/shore/authStore";
 import { useCartStore } from "@/shore/cartStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 const IMAGE_PLACEHOLDER =
   'data:image/svg+xml;charset=UTF-8,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="960" viewBox="0 0 800 960"%3E%3Crect width="800" height="960" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" fill="%239ca3af" font-family="Arial, sans-serif" font-size="28"%3EImage unavailable%3C/text%3E%3C/svg%3E';
@@ -270,7 +271,7 @@ export default function CheckoutPage() {
               <p className="text-sm text-ink-soft mb-6">{orderStatusLabel}</p>
             )}
             <p className="text-lg font-semibold text-ink mb-2">
-              Order Total: ₦{total.toLocaleString()}
+              Order Total: {formatCurrency(total)}
             </p>
             <p className="text-sm text-ink-soft mb-8">
               Order #{orderNumber} · Confirmation sent to {effectiveFormData.email}
@@ -653,7 +654,7 @@ export default function CheckoutPage() {
                       </p>
                       <div className="flex items-center justify-between mt-1">
                         <p className="font-semibold text-ink">
-                          ₦{(item.price * item.quantity).toLocaleString()}
+                          {formatCurrency(item.price * item.quantity)}
                         </p>
                         <p className="text-ink-soft">x{item.quantity}</p>
                       </div>
@@ -665,11 +666,11 @@ export default function CheckoutPage() {
               <div className="space-y-2 sm:space-y-3 pt-4 sm:pt-6 border-t">
                 <div className="flex justify-between text-xs sm:text-sm text-ink-soft">
                   <span>Subtotal</span>
-                  <span className="font-medium">₦{subtotal.toLocaleString()}</span>
+                  <span className="font-medium">{formatCurrency(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-xs sm:text-sm text-ink-soft">
                   <span>Shipping</span>
-                  <span className="font-medium">{shipping === 0 ? "Free" : `₦${shipping.toLocaleString()}`}</span>
+                  <span className="font-medium">{shipping === 0 ? "Free" : formatCurrency(shipping)}</span>
                 </div>
                 <div className="flex justify-between text-xs sm:text-sm text-ink-soft">
                   <span>Delivery</span>
@@ -677,7 +678,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-base sm:text-lg font-semibold text-ink pt-2 sm:pt-3 border-t">
                   <span>Total</span>
-                  <span>₦{total.toLocaleString()}</span>
+                  <span>{formatCurrency(total)}</span>
                 </div>
               </div>
             </div>

@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/shore/cartStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 
 const IMAGE_PLACEHOLDER =
@@ -189,7 +190,7 @@ export default function CartDrawer() {
                           </h3>
 
                           <p className="text-ink-soft text-sm mt-1">
-                            ₦{item.price.toLocaleString()}
+                            {formatCurrency(item.price)}
                           </p>
 
                           {item.selectedSize ? (
@@ -269,7 +270,7 @@ export default function CartDrawer() {
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                      ₦{totalPrice.toLocaleString()}
+                     {formatCurrency(totalPrice)}
                     </motion.p>
                   </div>
                   <p className="text-xs text-ink-soft">

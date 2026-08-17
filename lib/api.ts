@@ -1351,3 +1351,42 @@ export async function updateOrderStatus(
     return { ok: false, order: null, message: "Could not connect to orders service." };
   }
 }
+
+export type AdminStats = {
+  totalRevenue: number;
+  totalOrders: number;
+  pendingOrders: number;
+  ordersToday: number;
+  totalProducts: number;
+  lowStockCount: number;
+};
+
+export async function getAdminStats(token: string): Promise<{ ok: boolean; stats: AdminStats | null; message?: string }> {
+  try {
+    const response = await fetch(buildApiUrl("/api/orders/admin/stats"), {
+      cache: "no-store",
+      headers: buildAuthHeaders(token),
+    });
+
+    const data = (await response.json()) as AdminStats & { message?: string };
+
+    if (!response.ok) {
+      return { ok: false, stats: null, message: data.message || "Failed to fetch dashboard stats." };
+    }
+
+    return {
+      ok: true,
+      stats: {
+        totalRevenue: data.totalRevenue ?? 0,
+        totalOrders: data.totalOrders ?? 0,
+        pendingOrders: data.pendingOrders ?? 0,
+        ordersToday: data.ordersToday ?? 0,
+        totalProducts: data.totalProducts ?? 0,
+        lowStockCount: data.lowStockCount ?? 0,
+      },
+    };
+  } catch (error) {
+    logApiEvent("error", "Error fetching admin stats.", error);
+    return { ok: false, stats: null, message: "Could not connect to stats service." };
+  }
+}

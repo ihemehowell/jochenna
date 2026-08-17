@@ -13,6 +13,7 @@ import {
 import { useAuthStore } from "@/shore/authStore";
 import { useFeedbackStore } from "@/shore/feedbackStore";
 import { ArrowLeft } from "lucide-react";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 const statusOptions: ApiOrderStatus[] = ["pending", "confirmed", "shipped", "delivered", "cancelled"];
 
@@ -161,7 +162,7 @@ export default function AdminOrdersPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <p className="text-sm text-ink-soft">Order #{order.id}</p>
-                    <h2 className="mt-1 text-xl font-semibold text-ink">₦{order.total.toLocaleString()}</h2>
+                    <h2 className="mt-1 text-xl font-semibold text-ink">{formatCurrency(order.total)}</h2>
                     <p className="mt-1 text-sm text-ink-soft">
                       {order.shippingAddress?.name || "No shipping name"} · {order.status}
                     </p>

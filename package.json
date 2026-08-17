@@ -13,6 +13,7 @@
     "check": "npm run lint && npm run typecheck && npm run test:run && npm run build"
   },
   "dependencies": {
+    "@ihemehowell/react-utils": "^0.1.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "next": "16.2.6",

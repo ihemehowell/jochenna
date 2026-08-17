@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { getOrders, type ApiOrder } from "@/lib/api";
 import { useAuthStore } from "@/shore/authStore";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -85,7 +86,7 @@ export default function OrdersPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <p className="text-lg font-semibold text-ink">₦{order.total.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-ink">{formatCurrency(order.total)}</p>
                     <Link
                       href={`/orders/${order.id}`}
                       className="rounded-full bg-ink px-5 py-2 text-sm font-semibold text-white"

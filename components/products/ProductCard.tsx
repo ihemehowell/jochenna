@@ -8,6 +8,7 @@ import { useWishlistStore } from "@/shore/wishlistStore";
 import type { Product } from "@/lib/types";
 import ProductGallery from "./ProductGallery";
 import { useFeedbackStore } from "@/shore/feedbackStore";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 
 type ProductCardProps = {
@@ -212,7 +213,7 @@ export default function ProductCard({
 
         <div className="flex items-center justify-between pt-1">
           <p className="font-bold text-base text-ink sm:text-lg">
-            ₦{product.price.toLocaleString()}
+            {formatCurrency(product.price)}
           </p>
           {product.stock === 0 && (
             <span className="text-xs font-semibold text-red-600 bg-red-50 px-2 py-1 rounded">

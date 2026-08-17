@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getOrderById, type ApiOrder } from "@/lib/api";
 import { useAuthStore } from "@/shore/authStore";
+import { formatCurrency } from "@ihemehowell/react-utils/format";
 
 export default function OrderDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -74,7 +75,7 @@ export default function OrderDetailsPage() {
               <h1 className="mt-2 text-3xl font-semibold text-ink">Order #{order.id}</h1>
               <p className="mt-2 text-ink-soft">Status: {order.status}</p>
             </div>
-            <p className="text-2xl font-semibold text-ink">₦{order.total.toLocaleString()}</p>
+            <p className="text-2xl font-semibold text-ink">{formatCurrency(order.total)}</p>
           </div>
         </section>
 
@@ -117,7 +118,7 @@ export default function OrderDetailsPage() {
                 <p className="mt-2 text-sm text-ink-soft">Delivery: {order.deliveryMethod}</p>
               )}
               {typeof order.shippingFee === "number" && (
-                <p className="mt-2 text-sm text-ink-soft">Shipping fee: ₦{order.shippingFee.toLocaleString()}</p>
+                <p className="mt-2 text-sm text-ink-soft">Shipping fee: {formatCurrency(order.shippingFee)}</p>
               )}
             </section>
           </div>
